@@ -9,3 +9,6 @@ All notable changes to this project are documented here. The format follows
 ## [0.1.0]
 
 - First release.
+- `join` builds a natural-language phrase with a configurable conjunction and an
+  optional Oxford comma.
+- `join_max` truncates to a limit and folds the rest into a configurable "N more" tail.
