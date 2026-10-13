@@ -10,8 +10,8 @@ Progress:
 - [x] Contracts: CLDR table, Intl.ListFormat output, README examples, installed wheel
 - [x] Docs and packaging: README, CHANGELOG, metadata, sdist contents
 - [x] Gates: ruff format, ruff check, mypy --strict, pytest
-- [ ] Mutation run: removing guarded logic makes the suite fail
-- [ ] Independent review findings fixed with regression tests
+- [x] Mutation run: removing guarded logic makes the suite fail
+- [x] Independent review findings fixed with regression tests
 - [ ] Pull request opened, guard clean
 
 ## Starting point
@@ -74,3 +74,35 @@ Progress:
 - Inflecting the items themselves (case, gender); CLDR list patterns do not cover it.
 - Locale negotiation against the user environment: the caller passes the locale.
 - `formatToParts`: spans are not exposed in this round.
+
+## Mutation run
+
+70 hand-written mutants over every module and the derivation script (Hebrew ranges, each
+Spanish rule character test, the empty-item guard, placeholder checks, the order of the
+start, middle and end patterns, contextual hooks, POSIX and BCP 47 parsing, aliases,
+modifiers, extlang rejection, variants, likely and default scripts, parent locales, the
+type and style index, argument checks, the truncation tail, every command line branch, three
+edits of the shipped table, and the derivation rules). Run on Elena's PC with Python 3.14
+and the reference files fetched: 69 killed. The survivor (a numeric region read as a
+variant) was equivalent for every tested tag; `es-419-fonipa` now tells them apart and
+kills it. Two survivors of an earlier run were a dead branch (removed) and a derivation
+condition with no effect on CLDR 48 data (now covered by a synthetic test). The run writes
+no bytecode, purges `__pycache__` before each mutant, has a per-mutant timeout, and checks
+that the suite is green before and after. The console-encoding mutant runs with the
+installed wheel test switched on.
+
+## Independent review
+
+Fixed, each with a regression test in `tests/test_review_fixes.py`:
+
+- POSIX script modifiers were dropped: `sr_RS@latin` read Cyrillic.
+- Language aliases with a script or region were lost: `sh`, `cnr` and `prs` raised.
+- Region aliases were not applied: `en-UK` read American English.
+- Variant locales (`ca-ES-valencia`) and default-script locales (`zh-SG` to `zh-Hans-SG`)
+  were never reached; every supported locale now resolves to itself.
+- Extended language subtags (`zh-cmn-Hant`) were misread; they are rejected.
+- Command line: a byte order mark on stdin stuck to the first item, invalid UTF-8 crashed
+  with a traceback, a terminal with no items waited silently, items kept their spaces, and
+  a tail template with another field gave an unhelpful message.
+- Docs: README resolution examples, CHANGELOG breaking note, tree checks limited to files
+  git tracks.

@@ -56,6 +56,8 @@ def test_every_supported_locale_resolves_to_itself() -> None:
         ("ca-es-VALENCIA", "ca-ES-valencia"),
         ("en-Latn-GB", "en-GB"),
         ("zh-Hans-CN", "zh"),
+        ("es-419-fonipa", "es-419"),
+        ("ES_419", "es-419"),
     ],
 )
 def test_default_scripts_and_variants_reach_their_own_locale(tag: str, expected: str) -> None:
