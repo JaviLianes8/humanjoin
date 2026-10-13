@@ -55,6 +55,20 @@ def test_the_shipped_table_is_a_fresh_derivation_from_cldr() -> None:
     assert build.render(build.derive()) == shipped
 
 
+def test_likely_scripts_keep_only_regions_that_change_the_script() -> None:
+    build = _build_script()
+    locales = {"zh": [0], "zh-Hant": [0], "en": [0]}
+    likely = {
+        "zh": "zh-Hans-CN",
+        "zh-CN": "zh-Hans-CN",
+        "zh-TW": "zh-Hant-TW",
+        "zh-Hant": "zh-Hant-TW",
+        "en-GB": "en-Latn-GB",
+        "en-RU": "en-Cyrl-RU",
+    }
+    assert build._likely_scripts(locales, likely) == {"zh-TW": "Hant"}
+
+
 def test_every_locale_type_and_style_reads_its_cldr_patterns() -> None:
     cldr = _cldr_list_patterns()
     assert set(cldr) == set(supported_locales())

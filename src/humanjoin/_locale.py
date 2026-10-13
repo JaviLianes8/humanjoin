@@ -77,9 +77,6 @@ def resolve_locale(locale: str) -> str:
     while tag:
         if tag in data["locales"]:
             return tag
-        parent = data["parents"].get(tag)
-        if parent is not None:
-            tag = "und" if parent == "root" else parent
-        else:
-            tag = tag.rpartition("-")[0]
+        parent = data["parents"].get(tag)  # CLDR JSON names the root locale "und"
+        tag = parent if parent is not None else tag.rpartition("-")[0]
     raise LookupError(f"no list patterns for locale {locale!r}")
