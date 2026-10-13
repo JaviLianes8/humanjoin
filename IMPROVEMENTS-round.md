@@ -7,9 +7,9 @@ Progress:
 - [x] `format_list`, `list_pattern`, `ListPattern`, locale resolution, contextual Spanish and Hebrew rules
 - [x] `join` and `join_max` fixes: validated arguments, `join_max` honours `conj` and `oxford`, callable tail
 - [x] Command line
-- [ ] Contracts: CLDR table, Intl.ListFormat output, README examples, installed wheel
-- [ ] Docs and packaging: README, CHANGELOG, metadata, sdist contents
-- [ ] Gates: ruff format, ruff check, mypy --strict, pytest
+- [x] Contracts: CLDR table, Intl.ListFormat output, README examples, installed wheel
+- [x] Docs and packaging: README, CHANGELOG, metadata, sdist contents
+- [x] Gates: ruff format, ruff check, mypy --strict, pytest
 - [ ] Mutation run: removing guarded logic makes the suite fail
 - [ ] Independent review findings fixed with regression tests
 - [ ] Pull request opened, guard clean
