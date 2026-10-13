@@ -4,18 +4,28 @@ build-backend = "hatchling.build"
 
 [project]
 name = "humanjoin"
-version = "0.1.0"
-description = "Join a list of strings into a natural-language phrase, with Oxford comma and overflow limit"
+version = "0.2.0"
+description = "Join a list into a natural-language phrase: Oxford comma, overflow limit, and the list patterns of every Unicode CLDR locale"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "MIT AND Unicode-3.0"
+license-files = ["LICENSE", "LICENSE-UNICODE"]
 authors = [{ name = "Javier Lianes", email = "javier@lianes8studio.com" }]
-keywords = []
+keywords = ["list", "join", "oxford comma", "cldr", "i18n", "l10n", "intl", "listformat", "humanize"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Internationalization",
+    "Topic :: Software Development :: Localization",
+    "Topic :: Text Processing :: Linguistic",
     "Typing :: Typed",
 ]
 dependencies = []
@@ -31,8 +41,23 @@ Changelog = "https://github.com/JaviLianes8/humanjoin/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
 Funding = "https://buymeacoffee.com/jlianesglrs"
 
+[project.scripts]
+humanjoin = "humanjoin._cli:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/humanjoin"]
+
+[tool.hatch.build.targets.sdist]
+# Third-party reference files are fetched locally and never shipped; only their manifest is.
+exclude = [
+    ".github",
+    "IMPROVEMENTS-round*.md",
+    "tests/upstream/*.tgz",
+    "tests/upstream/*.txt",
+    "tests/upstream/*.cpp",
+    "tests/upstream/*.html",
+    "tests/upstream/intl-node.json",
+]
 
 [tool.ruff]
 line-length = 100

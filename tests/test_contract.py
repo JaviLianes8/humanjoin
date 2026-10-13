@@ -4,7 +4,18 @@ import humanjoin
 
 # The public API. Add every exported name here as the library grows; this list is the
 # contract and the test below fails if the module and this list disagree.
-PUBLIC_API: list[str] = ["join", "join_max"]
+PUBLIC_API: list[str] = [
+    "ListPattern",
+    "ListStyle",
+    "ListType",
+    "cldr_version",
+    "format_list",
+    "join",
+    "join_max",
+    "list_pattern",
+    "resolve_locale",
+    "supported_locales",
+]
 
 
 def test_all_lists_exactly_the_public_api() -> None:
@@ -24,3 +35,7 @@ def test_version_is_a_three_part_string() -> None:
 
 def test_the_package_ships_type_information() -> None:
     assert importlib.resources.files("humanjoin").joinpath("py.typed").is_file()
+
+
+def test_the_package_ships_its_pattern_table() -> None:
+    assert importlib.resources.files("humanjoin").joinpath("_cldr.json").is_file()

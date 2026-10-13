@@ -13,16 +13,16 @@ pip install humanjoin
 ```python
 from humanjoin import join, join_max
 
-join([])                                  # ""
-join(["apple"])                           # "apple"
-join(["apple", "pear"])                   # "apple and pear"
-join(["apple", "pear", "plum"])           # "apple, pear, and plum"
-join(["apple", "pear", "plum"], oxford=False)   # "apple, pear and plum"
-join(["red", "green", "blue"], conj="or")       # "red, green, or blue"
-join([1, 2, 3])                           # "1, 2, and 3"
+join([])  # ""
+join(["apple"])  # "apple"
+join(["apple", "pear"])  # "apple and pear"
+join(["apple", "pear", "plum"])  # "apple, pear, and plum"
+join(["apple", "pear", "plum"], oxford=False)  # "apple, pear and plum"
+join(["red", "green", "blue"], conj="or")  # "red, green, or blue"
+join([1, 2, 3])  # "1, 2, and 3"
 
-join_max(["a", "b", "c", "d", "e"], 2)    # "a, b, and 3 more"
-join_max(["a", "b", "c"], 2)              # "a, b, and 1 more"
+join_max(["a", "b", "c", "d", "e"], 2)  # "a, b, and 3 more"
+join_max(["a", "b", "c"], 2)  # "a, b, and 1 more"
 join_max(["a", "b", "c"], 1, more="{n} others")  # "a and 2 others"
 ```
 

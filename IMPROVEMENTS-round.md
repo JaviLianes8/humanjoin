@@ -2,10 +2,10 @@
 
 Progress:
 - [x] Brainstorm ranked improvements (this file)
-- [ ] Pin the ground truth: CLDR 48 list patterns, ICU 78.3 list formatter, Unicode 17 scripts, Intl.ListFormat output
-- [ ] Locale pattern table derived from CLDR, with the Unicode licence shipped
-- [ ] `format_list`, `list_pattern`, `ListPattern`, locale resolution, contextual Spanish and Hebrew rules
-- [ ] `join` and `join_max` fixes: validated arguments, `join_max` honours `conj` and `oxford`, callable tail
+- [x] Pin the ground truth: CLDR 48 list patterns, ICU 78.3 list formatter, Unicode 17 scripts, Intl.ListFormat output
+- [x] Locale pattern table derived from CLDR, with the Unicode licence shipped
+- [x] `format_list`, `list_pattern`, `ListPattern`, locale resolution, contextual Spanish and Hebrew rules
+- [x] `join` and `join_max` fixes: validated arguments, `join_max` honours `conj` and `oxford`, callable tail
 - [ ] Command line
 - [ ] Contracts: CLDR table, Intl.ListFormat output, README examples, installed wheel
 - [ ] Docs and packaging: README, CHANGELOG, metadata, sdist contents
