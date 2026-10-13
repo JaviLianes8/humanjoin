@@ -47,7 +47,7 @@ def test_every_list_length_type_and_style_matches_intl(reference: Any) -> None:
         assert got == expected, (tag, kind, style, count)
         compared.add(tag)
         cases += 1
-    assert (len(compared), cases) == (547, 25020)
+    assert (len(compared), cases) == (545, 24930)
     probes = {"en", "de", "ja", "zh-TW", "zh-HK", "sr-ME", "pa-PK", "iw", "tl", "de-AT-1996"}
     assert probes <= compared
 

@@ -24,7 +24,10 @@ def truncate(items: Iterable[object], limit: int | None, more: More) -> list[str
     if hidden <= 0:
         return parts
     if isinstance(more, str):
-        tail = more.format(n=hidden)
+        try:
+            tail = more.format(n=hidden)
+        except (KeyError, IndexError, AttributeError, TypeError) as error:
+            raise ValueError(f"more may only use the field {{n}}, got {more!r}") from error
     elif callable(more):
         tail = str(more(hidden))
     else:

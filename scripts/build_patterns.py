@@ -27,6 +27,8 @@ KINDS = [
     (kind, style) for kind in ("standard", "or", "unit") for style in ("", "-short", "-narrow")
 ]
 LANGUAGE = re.compile(r"[a-z]{2,3}")
+REGION = re.compile(r"[A-Z]{2}|\d{3}")
+TAG = re.compile(r"[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?")
 
 
 def _members(path: Path) -> dict[str, Any]:
@@ -69,28 +71,27 @@ def derive(upstream: Path = UPSTREAM) -> dict[str, Any]:
         "parents": parents,
         "scripts": _likely_scripts(locales, likely),
         "aliases": _language_aliases(locales, aliases["languageAlias"]),
+        "regions": _region_aliases(aliases["territoryAlias"]),
     }
 
 
 def _likely_scripts(locales: dict[str, list[int]], likely: dict[str, str]) -> dict[str, str]:
-    """Language-region pairs whose likely script is not the default of the language.
+    """The likely script of each language written in several, and of its regions that differ.
 
     Only languages with locales in more than one script need it: that is what makes
-    ``zh-TW`` read the Traditional Chinese patterns.
+    ``zh-TW`` read the Traditional Chinese patterns and ``zh-SG`` reach ``zh-Hans-SG``.
     """
     multi = {name.split("-")[0] for name in locales if _script(name)}
     found: dict[str, str] = {}
     for key, value in sorted(likely.items()):
         parts = key.split("-")
-        if (
-            len(parts) != 2
-            or parts[0] not in multi
-            or not re.fullmatch(r"[A-Z]{2}|\d{3}", parts[1])
-        ):
+        if parts[0] not in multi or not 1 <= len(parts) <= 2:
+            continue
+        if len(parts) == 2 and not REGION.fullmatch(parts[1]):
             continue
         default = likely.get(parts[0], "").split("-")
         script = value.split("-")[1]
-        if len(default) > 1 and script != default[1]:
+        if len(parts) == 1 or (len(default) > 1 and script != default[1]):
             found[key] = script
     return found
 
@@ -101,14 +102,26 @@ def _script(name: str) -> bool:
 
 
 def _language_aliases(locales: dict[str, list[int]], table: dict[str, Any]) -> dict[str, str]:
-    """Bare language codes CLDR replaces by another bare language code that has data."""
+    """Language codes CLDR replaces, mapped to a replacement whose language has data.
+
+    A replacement may carry a script or region (``sh`` is ``sr-Latn``, ``cnr`` is ``sr-ME``).
+    """
     languages = {name.split("-")[0] for name in locales}
     found: dict[str, str] = {}
     for key, entry in sorted(table.items()):
         target = entry["_replacement"]
-        if LANGUAGE.fullmatch(key) and LANGUAGE.fullmatch(target) and target in languages:
+        if LANGUAGE.fullmatch(key) and TAG.fullmatch(target) and target.split("-")[0] in languages:
             found[key] = target
     return found
+
+
+def _region_aliases(table: dict[str, Any]) -> dict[str, str]:
+    """Region codes CLDR replaces by exactly one other region (``UK`` is ``GB``)."""
+    return {
+        key: entry["_replacement"]
+        for key, entry in sorted(table.items())
+        if REGION.fullmatch(key) and REGION.fullmatch(entry["_replacement"])
+    }
 
 
 def render(table: dict[str, Any]) -> str:

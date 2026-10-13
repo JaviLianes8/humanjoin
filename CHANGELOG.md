@@ -29,7 +29,9 @@ All notable changes to this project are documented here. The format follows
 
 - `join_max` takes `conj` and `oxford` and passes them to `join`; before, it always used
   "and" with the Oxford comma.
-- `more` may be a callable taking the hidden count, for plurals.
+- `more` may be a callable taking the hidden count, for plurals. A template that uses a
+  field other than `{n}` raises `ValueError`.
+- Breaking: the argument checks below turn calls that used to return odd text into errors.
 
 ### Fixed
 

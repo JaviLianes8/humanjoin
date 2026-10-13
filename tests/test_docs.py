@@ -6,7 +6,10 @@ import contextlib
 import io
 import re
 import shlex
+import subprocess
 from pathlib import Path
+
+import pytest
 
 import humanjoin
 from humanjoin._cli import main
@@ -69,20 +72,18 @@ def test_the_unicode_licence_is_shipped_and_declared() -> None:
 
 
 def _tracked_text_files() -> list[Path]:
+    """Files git tracks or would track: ignored folders such as a venv are left out."""
+    if not (ROOT / ".git").exists():
+        pytest.skip("the tree checks need a git checkout")
+    listed = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
     suffixes = {".py", ".md", ".toml", ".ps1", ".txt", ".yml", ".json", ".mjs"}
-    found = []
-    for path in ROOT.rglob("*"):
-        parts = path.relative_to(ROOT).parts
-        if not path.is_file() or path.suffix not in suffixes:
-            continue
-        if parts[:2] == ("tests", "upstream") and path.name != "MANIFEST.json":
-            continue
-        if any(
-            (part.startswith(".") and part != ".github") or part == "__pycache__" for part in parts
-        ):
-            continue
-        found.append(path)
-    return found
+    return [ROOT / name for name in listed if Path(name).suffix in suffixes]
 
 
 def test_no_em_dash_anywhere_in_the_tree() -> None:

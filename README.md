@@ -130,10 +130,12 @@ items. The differences are deliberate:
 - POSIX spellings such as `pt_BR.UTF-8` are accepted.
 - Items do not have to be strings.
 
-Locale resolution replaces deprecated codes (`iw` is `he`), adds the likely script where a
-language is written in several (`zh-TW` reads `zh-Hant`, `sr-ME` reads `sr-Latn-ME`), then
-follows the CLDR parent locales (`en-IN` and `en-AU` read `en-001`, `pt-AO` reads `pt-PT`)
-and drops subtags until it finds data.
+Locale resolution replaces deprecated codes (`iw` is `he`, `sh` is `sr-Latn`, `en-UK` is
+`en-GB`), reads POSIX script modifiers (`sr_RS@latin`), adds the likely script where a
+language is written in several (`zh-TW` reads `zh-Hant`, `zh-SG` reads `zh-Hans-SG`,
+`sr-ME` reads `sr-Latn-ME`), keeps variant locales (`ca-ES-valencia`), then follows the CLDR
+parent locales (`en-IN` reads `en-001`, `pt-FR` reads `pt-PT`) and drops subtags until it
+finds data. Every name `supported_locales()` returns resolves to itself.
 
 ## Why
 

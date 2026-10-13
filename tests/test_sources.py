@@ -66,7 +66,7 @@ def test_likely_scripts_keep_only_regions_that_change_the_script() -> None:
         "en-GB": "en-Latn-GB",
         "en-RU": "en-Cyrl-RU",
     }
-    assert build._likely_scripts(locales, likely) == {"zh-TW": "Hant"}
+    assert build._likely_scripts(locales, likely) == {"zh": "Hans", "zh-TW": "Hant"}
 
 
 def test_every_locale_type_and_style_reads_its_cldr_patterns() -> None:
