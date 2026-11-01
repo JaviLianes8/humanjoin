@@ -17,9 +17,56 @@ Progress:
 - [x] Every installed supported interpreter (item 10)
 - [x] Final four gates (item 15)
 - [x] Author mutation round (item 18)
-- [ ] Independent reviewer (item 16, separate stage)
-- [ ] Five independent QA lenses (item 19, separate stage)
+- [x] Independent reviewer (item 16, round 1 PASS)
+- [x] Five independent QA lenses (item 19, all PASS)
 - [x] Release PR #3 and guard CLEAN; merge and publication are separate stages (item 17)
+
+## Final certification, 2026-11-01
+
+All five accepted QA lenses and the independent reviewer report PASS. The review
+covers release head `802bfcc19a3095ba30352d5d7ca04edf3b249ef6`.
+This final record supersedes the pending verdicts in the historical sections below.
+Report paths are relative to the local `humanjoin-cert` evidence archive.
+Round numbers identify the final accepted round in the current certification;
+lens c is retained from the earlier run, with no new round in this run.
+
+| Lens | Rounds | Final verdict | Report path | Reviewed commit |
+| --- | --- | --- | --- | --- |
+| a: API and documentation | 2 | PASS | `lens-a-r2/REPORT.md` | `4ee3365cc18bacccebd735f2fb97d856d5df9115` |
+| b: correctness and ground truth | 2 | PASS | `lens-b-r2/REPORT.md` | `4ee3365cc18bacccebd735f2fb97d856d5df9115` |
+| c: robustness | 0 (retained earlier round 4) | PASS | Earlier record in `CERT-1.0-REPORT.md`; `lens-c-r4/REPORT.md` | `a658ffd77407add18c22c25f0fecd6601e05872c` |
+| d: packaging and real e2e | 1 | PASS | `lens-d-r1/REPORT.md` | `a510cb7f6a1644df633d1eb36c17cecec8cecf9c` |
+| e: contract strength | 3 | PASS | `lens-e-r3/REPORT.md` | `802bfcc19a3095ba30352d5d7ca04edf3b249ef6` |
+
+### Reviewer scorecard
+
+Round 1 verdict: PASS, no findings. Report: `review-r1/REPORT.md`, reviewed commit
+`802bfcc19a3095ba30352d5d7ca04edf3b249ef6`. The reviewer passed items 1-16 and
+18-19, reserving item 17 as pending merge. Its row below records release
+preparation readiness only: the open release PR and clean guard satisfy this
+stage; merge and publication remain separate, unexecuted steps.
+
+| Item | Final verdict | Evidence |
+| --- | --- | --- |
+| 1 | PASS | Ten public exports, stable signatures/defaults and documented changes from 0.2.0 |
+| 2 | PASS | Exact public namespace and exports; examples use public imports |
+| 3 | PASS | Public docstrings, README and GUIDE examples executed |
+| 4 | PASS | Strict source/test typing and installed typing marker |
+| 5 | PASS | Documented error types, bounded messages and validation contracts |
+| 6 | PASS | 1,065 passing source tests cover the complete public contract and CLI |
+| 7 | PASS | Fresh upstream references match all six manifest hashes; CLDR and Node comparisons pass |
+| 8 | PASS | Fresh wheel consumer, both CLI forms, live 0.2.0 upgrade and bidirectional pickle checks |
+| 9 | PASS | Seeded properties, hostile inputs, 100,000-item cases and independent growth probes |
+| 10 | PASS | Installed-wheel suites pass on every available supported interpreter, Python 3.10-3.14 |
+| 11 | PASS | README rendering, absolute links, examples and strict Twine checks |
+| 12 | PASS | Dated 1.0.0 CHANGELOG section describes stability and migration changes |
+| 13 | PASS | Version 1.0.0, stable metadata, accurate classifiers/licenses/URLs and no runtime dependencies |
+| 14 | PASS | Wheel and sdist inventories, both licenses and wheel RECORD hashes checked |
+| 15 | PASS | All four gates exit 0 independently; strict source-plus-test typing also passes |
+| 16 | PASS | Independent round 1 review reports no findings |
+| 17 | PASS | Release preparation: PR #3 from `release/1.0.0` to `main`, clean guard; merge/publication reserved |
+| 18 | PASS | All 22 preparation mutations and all 12 independent reviewer mutations caught |
+| 19 | PASS | All five accepted QA lenses pass with report and commit provenance above |
 
 ## Resumed preparation, 2026-11-01
 
@@ -685,8 +732,6 @@ not claim a new independent PASS verdict.
 
 ## Remaining stages
 
-Item 16 remains a separate review stage. The round 1 fixes and round 2 E-03
-contract coverage are recorded above. Independent verification for item 19
-remains separate. No new independent PASS is claimed.
-Merge and PyPI publication are not part of preparation.
+Items 16 and 19 are complete, as recorded in the final certification section.
+Merge and PyPI publication remain separate steps and have not been performed.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
