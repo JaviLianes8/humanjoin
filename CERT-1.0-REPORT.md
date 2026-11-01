@@ -21,6 +21,76 @@ Progress:
 - [ ] Five independent QA lenses (item 19, separate stage)
 - [x] Release PR #3 and guard CLEAN; merge and publication are separate stages (item 17)
 
+## Resumed preparation, 2026-11-01
+
+Resumed clean release head `56013e570dffb1d78b90a8cb04bf6dbeebcd3229`.
+The implementation, tests and package metadata are unchanged in this resumption.
+Completed mutation work and all eight fix rounds are retained. The sections
+below describe the initial checks followed by each fix round; this section records
+the latest preparation evidence. Evidence paths are relative to the local archive.
+
+PyPI JSON was fetched again from https://pypi.org/pypi/humanjoin/json on
+2026-11-01 and still reports 0.2.0. All six manifest-listed reference files were
+freshly fetched or regenerated in `humanjoin-cert/resume-prep/upstream/` and
+matched their recorded hashes. Node generated 36,405 list cases and 1,512
+contextual cases. The existing 22-mutation table and saved failure logs remain
+the completed author round; no mutation is claimed as newly executed here.
+
+Each gate independently exits 0: `ruff format --check .` (43 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (1,003 passed,
+zero skips, 90.35 seconds). `mypy --strict src tests` also passes (35 files).
+The full suite enables fetched references, the wheel consumer, both CLI entry
+points and the real PyPI upgrade. Per-test timeouts are 300 seconds.
+
+Built the sdist and its wheel again with hatchling 1.33.0; both pass
+`twine check --strict`. Inspected both complete inventories: the current wheel
+has 18 members, including the typing marker and both licenses, without tests,
+scripts or caches. The sdist excludes fetched references, reports and scratch
+files. Logs and artifact hashes are in `humanjoin-cert/resume-prep/`.
+
+### Current installed-wheel interpreter matrix
+
+Fresh virtual environments installed the rebuilt wheel. The suite was extracted
+from the sdist without its `src` directory; isolated import checks confirm the
+package loads from `site-packages`. Both console and module entry points pass
+on every interpreter. Each suite uses fetched references and a 300-second timeout.
+
+| CPython | Installed-wheel suite | Both CLI entry points |
+| --- | --- | --- |
+| 3.10.22 | 999 passed, 4 skipped | PASS |
+| 3.11.11 (Blender) | 999 passed, 4 skipped | PASS |
+| 3.11.18 | 999 passed, 4 skipped | PASS |
+| 3.12.16 | 999 passed, 4 skipped | PASS |
+| 3.13.18 | 999 passed, 4 skipped | PASS |
+| 3.14.6 | 999 passed, 4 skipped | PASS |
+| 3.14.10 free-threaded | 999 passed, 4 skipped | PASS |
+
+The four skips are the two checkout-only checks and the two opt-in e2e tests
+already included in the 1,003-pass source run. No declared supported minor version
+is unavailable now: the five additional runtimes installed during lens d remain
+available and were reused as bases for new environments. The thirteen obsolete
+launcher paths still do not exist. This matrix supersedes the initial two-runtime
+inventory below. Raw commands, results and inventories are retained in
+`humanjoin-cert/resume-prep/`, including `matrix-results.json`.
+
+### Earlier independent verdicts
+
+Saved lens reports were inspected without rerunning those independent stages.
+Only lens c remains a current PASS: no production code changed after its checked
+commit. Earlier passes for a, b and d predate changes to code they covered and
+need fresh verification. Lens e's E-20 fix awaits independent confirmation.
+
+| Lens | Last reviewed commit | Saved verdict | Current applicability |
+| --- | --- | --- | --- |
+| a, round 2 | `8737287` | PASS | Superseded by locale, limit and text validation changes |
+| b, round 3 | `57efb3c` | PASS | Superseded by shared text validation changes |
+| c, round 4 | `a658ffd` | PASS | Retained: production tree unchanged since this check |
+| d, round 1 | `fe89fa7` | PASS | Superseded by implementation and packaged-suite changes |
+| e, round 8 | `abb21e7` | FAIL | E-20 fixed in `49966ef`; independent recheck pending |
+
+No independent item-16 reviewer pass is recorded. PR #3 remains open for the
+remaining review stages; merging and publication remain separate.
+
 ## API and behavior
 
 The ten public exports of 0.2.0 retain their names, parameter names and defaults.
@@ -210,7 +280,7 @@ The corrected `en-Cyrl` inheritance selects root while Node negotiates English;
 that probe is no longer a comparable Node case. The other 24,885 comparable
 cases across 544 tags pass, and CLDR-derived contracts cover the root behavior.
 Evidence logs and disposable environments are under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r1/`.
+`humanjoin-cert/fix-r1/` in the local evidence archive.
 Independent same-lens verification is still pending; these fix checks do not
 claim a new independent PASS verdict.
 
@@ -261,7 +331,7 @@ temporary paths: `ruff format --check .` (38 files), `ruff check .`,
 source and tests also passes (30 files). The full suite has 449 passes and zero
 skips with installed-wheel, both CLI entry points, fetched references and live
 PyPI 0.2.0 upgrade checks enabled. Evidence is retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r2/`.
+`humanjoin-cert/fix-r2/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these fix checks
 do not claim new independent PASS verdicts.
 
@@ -300,7 +370,7 @@ skips). Strict typing of source and tests also passes (31 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Logs, mutation results and copied probes are retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r3/`.
+`humanjoin-cert/fix-r3/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim new independent PASS verdicts.
 
@@ -338,7 +408,7 @@ skips). Strict typing of source and tests also passes (32 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Logs, the mutation patch and results, and copied witnesses are retained
-under `C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r4/`.
+under `humanjoin-cert/fix-r4/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
@@ -385,7 +455,7 @@ skips). Strict typing of source and tests also passes (35 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Gate logs, mutation patches and results are retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r5/`.
+`humanjoin-cert/fix-r5/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
@@ -433,7 +503,7 @@ skips). Strict typing of source and tests also passes (35 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Gate logs, mutation patches, witnesses and results are retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r6/`.
+`humanjoin-cert/fix-r6/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
@@ -472,7 +542,7 @@ skips). Strict typing of source and tests also passes (35 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Gate logs, the mutation patch, witnesses and results are retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r7/`.
+`humanjoin-cert/fix-r7/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
@@ -517,7 +587,7 @@ skips). Strict typing of source and tests also passes (35 files). The full suite
 includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
 upgrade. All six freshly fetched/generated reference files match their manifest
 hashes. Gate logs, the mutation patch, witnesses and results are retained under
-`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r8/`.
+`humanjoin-cert/fix-r8/` in the local evidence archive.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
