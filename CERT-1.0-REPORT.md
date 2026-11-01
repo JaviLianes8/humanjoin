@@ -4,7 +4,7 @@ Initial preparation for 1.0.0, dated 2026-11-01. The release branch resumes unco
 changes based on main `4080236dbfc64d4afb18f7fddc6e380c1c0461cf` (0.2.0).
 All nine package files in the downloaded PyPI 0.2.0 wheel equal main byte for byte.
 No earlier release commits or certification lens reports were present.
-The QA round 1 section below records subsequent findings, fixes and validation.
+The QA sections below record subsequent findings, fixes and validation.
 
 Progress:
 - [x] Published baseline checked: PyPI 0.2.0 is live
@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 1 fixes below; independent verification remains pending |
+| 19 | Round 2 fixes below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -214,9 +214,60 @@ Evidence logs and disposable environments are under
 Independent same-lens verification is still pending; these fix checks do not
 claim a new independent PASS verdict.
 
+## QA lenses, round 2
+
+Reviewed base: `8737287b4fc20583dd66efbdb401bf5fad264d66`.
+Fix commit: the commit introducing this section
+(`fix alias precedence and variant fallback contracts`), dated 2026-11-01.
+
+All eight supplied findings are addressed. Before production edits, the new
+contracts produced 18 failures and 50 passes on the reviewed base. Those failures
+cover every reported behavior defect, including both truncating functions for
+C-02. E-03, E-04 and E-06 add contracts for existing correct behavior. E-05 pins
+the corrected fallback policy shared with B-07. No findings are disputed.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| B-05 | Order aliases by populated CLDR fields, treating `und` as an empty language; restart after each match | `test_alias_rules_repeat_in_field_precedence_order` covers `nor-nynorsk`, `nor-bokmal`, `aar-saaho`, explicit scripts, POSIX and extensions; `test_chained_alias_selects_nynorsk_unit_patterns` requires `A B C` |
+| B-06 | Search available variant combinations before the base, including after default-script removal; avoid enumerating nonexistent subsets | `test_variant_combinations_precede_base_fallback` covers both variant orders and all three shipped variant locales; synthetic entries pin count/alphabetical precedence; 38 unrelated variants retain `be-tarask` |
+| B-07 | Walk likely-script fallback for default and nondefault scripts, retaining regional entries and explicit parents | `test_unavailable_variants_keep_likely_script_region` covers Singapore, Taiwan, Serbian and Portuguese fallback |
+| C-02 | Inspect the actual limit type before `int.__int__` normalization | `test_integer_validation_does_not_read_class_property` rejects a negative subclass before iteration and accepts a positive subclass without reading its raising `__class__` property |
+| E-03 | Pin initial BOM removal and noninitial U+FEFF preservation as exact bytes | Source module contracts and installed-wheel subprocesses exercise both entry points, with and without an initial BOM |
+| E-04 | Require the source language for compound aliases while retaining language-independent `und` rules | `test_compound_alias_requires_its_source_language` keeps `en-nynorsk`, `en-bokmal`, `en-saaho` and `en-lojban` English and resolves `sv-aaland` to `sv-AX` |
+| E-05 | Define unmatched-variant fallback consistently: `zh-SG-1996` now selects `zh-Hans-SG`, as does `zh-SG-fonipa` | Real-data assertions pin that choice; a labeled synthetic `zh-Hans-SG-1996` entry proves script insertion must preserve available variant data |
+| E-06 | Pin retention of unrelated variants through language aliases | `test_language_alias_preserves_unrelated_variants` covers `cat-ES-valencia`, its explicit-script form and `bel-tarask` |
+
+CLDR 48 references were fetched again, and all six downloaded/generated files
+match their manifest hashes. The matching
+[canonicalization and inheritance specification](https://www.unicode.org/reports/tr35/tr35-76/tr35.html)
+was fetched on 2026-11-01. Live Node 24.18.0 canonicalizes the three B-05 inputs
+to `nn`, `nb` and `ssy`, and produces `A B C` for the reported Nynorsk unit case.
+GUIDE, the locale docstring and CHANGELOG describe the corrected behavior.
+Public names, signatures, defaults and all 766 direct locale entries are unchanged.
+
+The four surviving mutations were replayed individually in a disposable copy:
+
+| Mutation | Detecting contract | Result |
+| --- | --- | --- |
+| N22 | `test_module_cli_preserves_noninitial_bom_bytes`; `test_installed_wheel_end_to_end` | Two source failures and one wheel-test failure; both installed commands execute before the byte comparison |
+| N27 | `test_compound_alias_requires_its_source_language` | Four failures; the language-independent alias still passes |
+| N34 | `test_likely_script_preserves_available_variant_data` | One failure; seven real-data fallback cases pass under the newly documented policy |
+| N36 | `test_language_alias_preserves_unrelated_variants` | Three failures |
+
+The 70 targeted tests pass before mutation and after byte-for-byte restoration.
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths: `ruff format --check .` (38 files), `ruff check .`,
+`mypy --strict src` (10 files), and `pytest` all exit 0. Strict typing of both
+source and tests also passes (30 files). The full suite has 449 passes and zero
+skips with installed-wheel, both CLI entry points, fetched references and live
+PyPI 0.2.0 upgrade checks enabled. Evidence is retained under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r2/`.
+Independent same-lens verification remains a separate stage; these fix checks
+do not claim new independent PASS verdicts.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. Round 1 findings for item 19 are fixed
+Item 16 remains a separate review stage. Round 2 findings for item 19 are fixed
 above and await independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.

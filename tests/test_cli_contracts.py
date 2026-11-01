@@ -61,6 +61,22 @@ def test_module_cli_preserves_exact_argument_whitespace() -> None:
     assert done.stdout == b" a , \tb\t, and  c " + os.linesep.encode()
 
 
+@pytest.mark.parametrize("prefix", [b"", b"\xef\xbb\xbf"])
+def test_module_cli_preserves_noninitial_bom_bytes(prefix: bytes) -> None:
+    done = subprocess.run(
+        [sys.executable, "-m", "humanjoin"],
+        input=prefix + b"a\n\xef\xbb\xbfb\n",
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+    assert (done.returncode, done.stdout, done.stderr) == (
+        0,
+        b"a and \xef\xbb\xbfb" + os.linesep.encode(),
+        b"",
+    )
+
+
 @pytest.mark.parametrize(
     "digits", ["\u0661\u0660\u0660\u0660", "\uff11\uff10\uff10\uff10", "\u06610\uff100"]
 )

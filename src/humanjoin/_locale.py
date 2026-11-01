@@ -7,7 +7,7 @@ from functools import lru_cache
 from importlib.resources import files
 from typing import Any
 
-from ._locale_tag import parse
+from ._locale_tag import _fields, parse
 
 __all__ = ["cldr_version", "resolve_locale", "supported_locales", "table"]
 
@@ -40,22 +40,45 @@ def supported_locales() -> tuple[str, ...]:
     return tuple(sorted(table()["locales"]))
 
 
+def _variant_match(tag: str) -> str | None:
+    locales = table()["locales"]
+    if tag in locales:
+        return tag
+    language, script, region, variants = _fields(tag.split("-"))
+    base = "-".join(part for part in (language, script, region) if part)
+    if variants:
+        wanted = set(variants)
+        candidates: list[str] = []
+        # Search only available combinations: enumerating all subsets would be exponential.
+        for candidate in locales:
+            if not candidate.startswith(base + "-"):
+                continue
+            fields = _fields(candidate.split("-"))
+            if fields[:3] == (language, script, region) and set(fields[3]) <= wanted:
+                candidates.append(candidate)
+        if candidates:
+            return min(candidates, key=lambda value: (-value.count("-"), value))
+    return base if base in locales else None
+
+
 def _walk(tag: str) -> str | None:
     """The first locale with data on the CLDR fallback chain of ``tag``."""
     data = table()
     while tag:
-        if tag in data["locales"]:
-            return tag
+        found = _variant_match(tag)
+        if found:
+            return found
+        language, script, region, variants = _fields(tag.split("-"))
         parent = data["parents"].get(tag)  # CLDR JSON names the root locale "und"
-        language, _, script = tag.partition("-")
+        if parent is None and variants:
+            tag = "-".join(part for part in (language, script, region) if part)
+            continue
         default = data["scripts"].get(language)
-        if (
-            parent is None
-            and len(script) == 4
-            and script.isalpha()
-            and default
-            and script != default
-        ):
+        if parent is None and script and script == default:
+            # Missing default-script entries still inherit the scriptless regional parent.
+            tag = "-".join(part for part in (language, region) if part)
+            continue
+        if parent is None and script and not region and default and script != default:
             parent = data["nonlikelyScript"]
         tag = parent if parent is not None else tag.rpartition("-")[0]
     return None
@@ -70,8 +93,10 @@ def resolve_locale(locale: str) -> str:
     (``zh-TW`` reads ``zh-Hant``, ``zh-SG`` reads ``zh-Hans-SG``). A locale without data of its
     own falls back through the CLDR parent locales, then by dropping subtags (``pt-FR``
     reads ``pt-PT``, ``de-AT-1996`` reads ``de-AT``).
-    Compound aliases such as ``no-nynorsk`` select ``nn``. Default-script removal retains
-    variants. Nonlikely scripts without their own data inherit root (``ru-Latn`` is ``und``).
+    Alias chains such as ``nor-nynorsk`` select ``nn``. Available variant combinations
+    precede the base locale (``be-tarask-fonipa`` reads ``be-tarask``). Script normalization
+    retains variants; unsupported variants still reach regional data (``zh-SG-1996`` reads
+    ``zh-Hans-SG``). Nonlikely scripts without data inherit root (``ru-Latn`` is ``und``).
     ``und`` and ``root`` name the root locale.
     Raises ``LookupError`` when no language with data is reached, so an unknown language
     never reads another language's patterns silently.
@@ -85,10 +110,9 @@ def resolve_locale(locale: str) -> str:
     language, script, region, variants = parse(locale, data)
     base = "-".join(part for part in (language, script, region) if part)
     full = "-".join([base, *variants])
-    if full in data["locales"]:
-        return full
-    if base in data["locales"]:
-        return base
+    direct = _variant_match(full)
+    if direct:
+        return direct
     found = None
     default = data["scripts"].get(language)
     if script and script == default:  # "en-Latn-GB" is "en-GB": CLDR omits default scripts
@@ -97,10 +121,7 @@ def resolve_locale(locale: str) -> str:
     elif not script and default:
         likely = data["scripts"].get(f"{language}-{region}", default)
         tagged = "-".join(part for part in (language, likely, region, *variants) if part)
-        if likely != default:
-            found = _walk(tagged)
-        elif tagged in data["locales"]:
-            found = tagged
+        found = _walk(tagged)
     found = found or _walk(full)
     if found is None:
         raise LookupError("no list patterns for locale")

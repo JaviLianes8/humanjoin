@@ -52,9 +52,17 @@ Locale lookup accepts case-insensitive BCP 47 style tags and POSIX spellings suc
 as `sr_RS.UTF-8@latin`. Encoding suffixes do not select patterns. The script
 modifiers `latin`, `cyrillic` and `devanagari` do; other modifiers are ignored.
 Deprecated language/region codes, likely scripts and CLDR parent locales are
-applied. Compound aliases such as `no-nynorsk` select `nn` while preserving explicit
-script and region fields. Removing a default script retains variants, so
-`ca-Latn-ES-valencia` selects `ca-ES-valencia`.
+applied. Alias rules prefer more populated fields, with language before script,
+region and variant at equal specificity, and repeat until canonical. Thus
+`nor-nynorsk` selects `nn`. Language-specific aliases require the source language:
+`en-nynorsk` stays `en`. Explicit scripts, regions and unrelated variants survive
+aliasing, so `cat-ES-valencia` selects `ca-ES-valencia`.
+Available variant combinations are tried before the base locale, with more variants
+first and then alphabetically: `be-tarask-fonipa` selects `be-tarask`. Removing a
+default script retains those combinations, so `ca-Latn-ES-fonipa-valencia` selects
+`ca-ES-valencia`. Likely-script insertion also retains variants; an unavailable
+variant falls back through regional data before losing the region. Both
+`zh-SG-fonipa` and `zh-SG-1996` select `zh-Hans-SG`.
 Extensions and private-use subtags do not select patterns. This is a
 locale lookup utility, not a full BCP 47 validator: variant and extension grammar
 is not exhaustively checked. Extended language subtags are unsupported.
@@ -120,8 +128,9 @@ stream errors also propagate. Exact message wording is not a compatibility promi
 `humanjoin` and `python -m humanjoin` accept ITEM arguments and `--locale`/`-l`,
 `--type`/`-t`, `--style`/`-s`, `--limit`, `--more`, `--locales`, `--version`, `--help`.
 Defaults match `format_list`. Arguments preserve spaces; with no items, stdin is
-read as UTF-8, one item per line. The first byte order mark, surrounding whitespace
-and blank lines are removed. Pipes use UTF-8 output. A terminal without items is
+read as UTF-8, one item per line. An initial byte order mark, surrounding whitespace
+and blank lines are removed. U+FEFF on later lines is preserved as item text.
+Pipes use UTF-8 output. A terminal without items is
 an error. Empty piped input prints a newline. `--locales` prints one tag per line.
 Success exits 0; usage, locale, template and malformed UTF-8 errors exit 2 on stderr.
 Argument errors do not echo supplied values. Use `--` before items beginning with `-`.

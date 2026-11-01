@@ -33,7 +33,7 @@ def _render(template: str, count: int) -> str:
 
 def truncate(items: Iterable[object], limit: int | None, more: More) -> list[str]:
     if limit is not None:
-        if isinstance(limit, bool) or not isinstance(limit, int):
+        if type(limit) is bool or not issubclass(type(limit), int):
             raise TypeError("limit must be an int or None")
         limit = int.__int__(limit)
         if limit < 0:

@@ -35,6 +35,16 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- CLDR aliases follow field-based precedence and repeat until canonical, so
+  `nor-nynorsk`, `nor-bokmal` and `aar-saaho` select `nn`, `nb` and `ssy`.
+- Multi-variant locale fallback searches available combinations before the base,
+  including after default-script removal: `be-tarask-fonipa` selects `be-tarask`
+  and `ca-Latn-ES-fonipa-valencia` selects `ca-ES-valencia`.
+- Unavailable variants no longer suppress likely-script regional fallback:
+  `zh-SG-fonipa` and `zh-SG-1996` select `zh-Hans-SG`. Variant data is retained
+  during script insertion, and explicit regional parents remain authoritative.
+- Integer limit validation inspects the actual type before normalization, so an
+  overridden `__class__` property cannot run or replace the documented errors.
 - Unicode decimal digits, including mixed alphabets and leading zeros, obey the 10000
   overflow-template width and precision limits in both public functions and the CLI.
 - Compound CLDR language aliases such as `no-nynorsk` resolve before fallback. Explicit
@@ -52,6 +62,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Exact-byte contracts preserve noninitial stdin BOM characters through both CLI
+  entry points while removing an initial BOM. Locale contracts require the correct
+  source language for compound aliases and preserve unrelated variants through aliasing.
 - Exact-byte subprocess contracts preserve whitespace in ITEM arguments through both CLI
   entry points. Callable-tail contracts retain eager `str` conversion followed by item
   coercion, including a callback result whose `__str__` returns a string subclass at limit zero.

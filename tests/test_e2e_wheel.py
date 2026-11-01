@@ -105,6 +105,14 @@ def test_installed_wheel_end_to_end(tmp_path: Path) -> None:
     assert [(done.returncode, done.stdout, done.stderr) for done in spaced] == [
         (0, b" a , \tb\t, and  c " + os.linesep.encode(), b"")
     ] * len(commands)
+    bom_results = [
+        _run(*command, cwd=work, stdin=prefix + b"a\n\xef\xbb\xbfb\n")
+        for command in commands
+        for prefix in (b"", b"\xef\xbb\xbf")
+    ]
+    assert [(done.returncode, done.stdout, done.stderr) for done in bom_results] == [
+        (0, b"a and \xef\xbb\xbfb" + os.linesep.encode(), b"")
+    ] * (2 * len(commands))
     for command in commands:
         shown = _run(*command, "-l", "zh-TW", cwd=work, stdin=b"a\nb\n")
         assert shown.returncode == 0, shown.stderr

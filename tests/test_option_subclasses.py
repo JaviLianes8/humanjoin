@@ -41,6 +41,10 @@ class _Negative(int):
         return False
 
 
+class _ClassPropertyInteger(int):
+    __class__ = property(_hook)
+
+
 def _untouched() -> Iterator[str]:
     raise AssertionError("invalid options must not consume items")
     yield "unused"
@@ -55,6 +59,13 @@ def test_negative_subclass_limit_is_rejected_before_iteration(function: Callable
 @pytest.mark.parametrize("function", [join_max, format_list])
 def test_integer_options_ignore_overridden_operations(function: Callable[..., str]) -> None:
     assert function("abc", limit=_Integer(1)) == "a and 2 more"
+
+
+@pytest.mark.parametrize("function", [join_max, format_list])
+def test_integer_validation_does_not_read_class_property(function: Callable[..., str]) -> None:
+    with pytest.raises(ValueError, match=r"^limit must not be negative$"):
+        function(_untouched(), limit=_ClassPropertyInteger(-1))
+    assert function("abc", limit=_ClassPropertyInteger(1)) == "a and 2 more"
 
 
 @pytest.mark.parametrize("function", [resolve_locale, list_pattern])
