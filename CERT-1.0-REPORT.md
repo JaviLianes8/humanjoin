@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 7 fix below; independent verification remains pending |
+| 19 | Round 8 fix below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -476,9 +476,54 @@ hashes. Gate logs, the mutation patch, witnesses and results are retained under
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
+## QA lenses, round 8
+
+Reviewed base: `abb21e7495b5b0b949e7be9638586acf4e710330`.
+Fix commit: `49966ef313c229caf888c2cfc574d3205cac91e0`
+(`add paired-surrogate preservation contracts`), dated 2026-11-01.
+
+E-20 is addressed. It concerns a missing contract for already-correct behavior.
+The 44 added cases preserve an explicit high/low surrogate pair and its
+corresponding supplementary Unicode character separately, using direct Python
+string equality. Production code, public names, signatures, defaults and behavior
+remain unchanged. No findings are disputed. CHANGELOG records the added contracts;
+expected values are hand-written.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| E-20 | Preserve adjacent surrogate code points without coalescing them | `test_option_text.py` covers both joiners, both Oxford settings, overflow, all four custom pattern fields, repeated middle patterns, overflow templates and stored custom language values; both explicit `\ud83d\ude00` and scalar `\U0001f600` retain their exact values |
+
+Every added contract covers plain strings and subclasses whose `__str__` raises.
+The exact reviewer patch was replayed in a disposable source copy with fresh
+processes and bytecode writes disabled. The public witness
+`join("ab", conj="x\ud83d\ude00y")` changes from eight code points to seven:
+`[97, 32, 120, 55357, 56832, 121, 32, 98]` becomes
+`[97, 32, 120, 128512, 121, 32, 98]`.
+
+| Mutation | Detecting contracts | Result |
+| --- | --- | --- |
+| P01: encode and decode text options as UTF-16 LE with `surrogatepass` | `test_joiners_preserve_conjunction_code_points`, `test_overflow_preserves_conjunction_code_points`, `test_custom_pattern_fields_preserve_code_points`, `test_custom_language_preserves_code_points` | 18 failures in the expanded option contracts; all 14 copied reviewer witnesses also fail |
+
+The previous 132 option cases pass under P01, reproducing the coverage gap.
+All 176 expanded option cases and all 14 copied reviewer witnesses pass before
+mutation and after byte-for-byte source restoration. The mutant run has 32
+assertion failures and 158 passes, with no collection errors, timeouts or skips.
+Original reviewer artifacts remain unchanged.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (43 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (1003 passed, zero
+skips). Strict typing of source and tests also passes (35 files). The full suite
+includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
+upgrade. All six freshly fetched/generated reference files match their manifest
+hashes. Gate logs, the mutation patch, witnesses and results are retained under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r8/`.
+Independent same-lens verification remains a separate stage; these checks do
+not claim a new independent PASS verdict.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. The round 7 finding for item 19 is fixed
+Item 16 remains a separate review stage. The round 8 finding for item 19 is fixed
 above and awaits independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
