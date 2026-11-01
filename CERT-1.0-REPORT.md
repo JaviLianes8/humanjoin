@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 3 fixes below; independent verification remains pending |
+| 19 | Round 4 fix below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -304,9 +304,47 @@ hashes. Logs, mutation results and copied probes are retained under
 Independent same-lens verification remains a separate stage; these checks do
 not claim new independent PASS verdicts.
 
+## QA lenses, round 4
+
+Reviewed base: `a658ffd77407add18c22c25f0fecd6601e05872c`.
+Fix commit: `8095410920f810551fdf2489d4a808500e3cc5c0`
+(`add whitespace preservation contracts`), dated 2026-11-01.
+
+E-08 is addressed. It concerns a missing contract for already-correct behavior:
+the 48 new tests pass on the reviewed implementation and fail under S08.
+Base-string normalization still preserves the exact text. Production code,
+public names, signatures, defaults and behavior remain unchanged. No findings
+are disputed. CHANGELOG records the added contracts.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| E-08 | Preserve significant option whitespace through both joiners and every custom pattern field; require exact language values for contextual rewriting | `test_option_whitespace.py`: plain strings and subclasses cover spaces, tabs, newlines, nonbreaking spaces, overflow, both Oxford settings, repeated middle patterns and padded `es`, `he` and `iw` values |
+
+The reported mutation was replayed in a disposable source copy with fresh
+processes and bytecode writes disabled:
+
+| Mutation | Detecting contracts | Result |
+| --- | --- | --- |
+| S08: append `.strip()` to base-string normalization | `test_joiners_preserve_conjunction_whitespace`, `test_overflow_preserves_conjunction_whitespace`, `test_custom_pattern_fields_preserve_whitespace`, `test_padded_language_values_keep_patterns_literal` | All 48 new cases fail; all seven copied reviewer whitespace witnesses also fail |
+
+All 55 cases pass before mutation and after byte-for-byte restoration. Original
+reviewer artifacts remain unchanged. The new expected values are hand-written
+from the public formatting contract.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (40 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (513 passed, zero
+skips). Strict typing of source and tests also passes (32 files). The full suite
+includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
+upgrade. All six freshly fetched/generated reference files match their manifest
+hashes. Logs, the mutation patch and results, and copied witnesses are retained
+under `C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r4/`.
+Independent same-lens verification remains a separate stage; these checks do
+not claim a new independent PASS verdict.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. Round 3 findings for item 19 are fixed
-above and await independent verification. No new independent PASS is claimed.
+Item 16 remains a separate review stage. The round 4 finding for item 19 is fixed
+above and awaits independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
