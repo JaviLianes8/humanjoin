@@ -76,6 +76,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts require callable string subclasses used as `more` to render their
+  underlying templates without invoking `__call__`, through both `join_max` and
+  `format_list`. These checks preserve existing behavior.
 - Contracts require `supported_locales()` to return an immutable tuple and prevent
   extension or private-use payloads from selecting available locale variants.
   These checks preserve existing behavior.

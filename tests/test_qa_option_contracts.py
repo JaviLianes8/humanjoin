@@ -33,6 +33,28 @@ class _Callback(_ClassHook):
         return f"{count} more"
 
 
+class _CallableTemplate(str):
+    def __init__(self, template: str) -> None:
+        self.counts: list[int] = []
+
+    def __call__(self, count: int) -> str:
+        self.counts.append(count)
+        return "callback result"
+
+
+@pytest.mark.parametrize("function", [join_max, format_list])
+@pytest.mark.parametrize(
+    ("limit", "expected"), [(0, "02 remaining"), (1, "a and 01 remaining"), (2, "a and b")]
+)
+def test_callable_string_tails_render_templates_without_calling(
+    function: Callable[..., str], limit: int, expected: str
+) -> None:
+    tail = _CallableTemplate("{n:02d} remaining")
+    result = function("ab", limit=limit, more=tail)
+    assert tail.counts == []
+    assert result == expected
+
+
 def _untouched() -> Iterator[str]:
     raise AssertionError("invalid options must not consume items")
     yield "unused"
