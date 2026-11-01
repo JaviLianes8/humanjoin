@@ -591,9 +591,66 @@ hashes. Gate logs, the mutation patch, witnesses and results are retained under
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
+## QA lenses, round 1 after resumed preparation
+
+Reviewed base: `a510cb7f6a1644df633d1eb36c17cecec8cecf9c`.
+Fix commit: `09a30670d334543cacc870ba8f5b8189fc2f28d5`
+(`fix option validation and locale canonicalization`), dated 2026-11-01.
+
+All six supplied findings are addressed. Before production edits, the 56 new
+contract cases produced 49 failures and seven passes. The failures cover all
+four behavior defects. E-01 and E-02 concern missing tests for already-correct
+behavior; their new contracts pass on the reviewed base and catch the reported
+mutations. No findings are disputed.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| A-001 | Require the actual `bool` type for Oxford flags | Both `join` and `join_max` reject spoofed and raising class properties before consuming items, with the documented error and zero property reads |
+| A-002 | Classify overflow templates by actual string ancestry, then handle callbacks separately | Both truncating functions accept callable tails with spoofed or raising class properties, invoke callbacks only on overflow with the hidden count, and reject invalid tails before iteration |
+| HJ-B-001 | Retain multi-target territory aliases and likely territories by language/script; canonicalize language aliases before choosing the territory | Nine public cases cover first-choice replacements, language-specific choices, deprecated language codes and punctuation; `en-200` selects `en-CZ`, and `kk-SU` selects `kk-KZ` |
+| HJ-B-002 | Retain supported language alias syntax regardless of target pattern availability | All three public locale entry points raise `LookupError` for `zh-hakka`, `zh-xiang` and `hy-arevmda`, matching their canonical spellings, with and without an unrelated variant |
+| E-01 | Assert the public tuple return type | `test_supported_locales_returns_an_immutable_tuple` catches M25 |
+| E-02 | Prevent extension and private-use payloads from selecting available variants | Four cases cover `u` and `x` with Catalan `valencia` and Belarusian `tarask`; resolution, patterns and formatting match the base locale |
+
+All 56 new cases pass after the fixes. The two surviving mutations were replayed
+serially in a disposable source copy with fresh processes and bytecode writes
+disabled:
+
+| Mutation | Result |
+| --- | --- |
+| M25: return a list instead of a tuple from `supported_locales()` | One new contract fails; 31 other locale cases pass |
+| M33: continue past extension singletons instead of stopping variant parsing | All four new extension cases fail; 28 other locale cases pass |
+
+All 32 locale cases pass before mutation and after byte-for-byte restoration.
+The replay has no collection errors, timeouts or skips.
+
+All six reference files were freshly fetched or generated and matched their
+manifest hashes. The regenerated CLDR table preserves all 766 locale entries,
+patterns, parent relationships and likely-script data; only alias and territory
+metadata changes. Copies of the supplied reviewer probes pass: eight option
+checks, ten minimal locale repros and the 11,433-case locale comparison, with
+zero discrepancies. Original reviewer artifacts remain unchanged.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (45 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (1,059 passed, zero
+skips). Strict typing of source and tests also passes (37 files). The full suite
+includes fetched references, installed-wheel checks, both CLI entry points and
+the live PyPI 0.2.0 upgrade. The initial fresh test environment lacked an editable
+install, causing CLI subprocess import failures; installing the checkout resolved
+those setup failures before the successful final run.
+
+CHANGELOG records every behavior change and both added coverage contracts.
+Public names, signatures and defaults remain unchanged. Gate logs, mutation
+replays and copied reviewer probes are retained under
+`humanjoin-cert/fix-qa-r1-a510cb7/` in the local evidence archive. Independent
+same-lens verification remains a separate stage; these checks do not claim new
+independent PASS verdicts.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. The round 8 finding for item 19 is fixed
-above and awaits independent verification. No new independent PASS is claimed.
+Item 16 remains a separate review stage. All six findings from round 1 after
+resumed preparation are fixed above and await independent verification for
+item 19. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
