@@ -647,10 +647,46 @@ replays and copied reviewer probes are retained under
 same-lens verification remains a separate stage; these checks do not claim new
 independent PASS verdicts.
 
+## QA lenses, round 2 after resumed preparation
+
+Reviewed base: `4ee3365cc18bacccebd735f2fb97d856d5df9115`.
+Fix commit: `96888d2977047f4c83c971ee815ebb8fcbe69cc4`
+(`pin template precedence for callable string tails`), dated 2026-11-01.
+
+E-03 is addressed. This finding concerns missing contracts for existing correct
+behavior. Production code, public signatures and runtime behavior are unchanged.
+CHANGELOG records the added coverage. No findings are disputed.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| E-03 | Require callable string subclasses used as `more` to render their underlying template without invoking `__call__` | `test_callable_string_tails_render_templates_without_calling` checks exact formatted output and zero callback calls through both `join_max` and `format_list`, at zero, partial and non-overflow limits |
+
+All six new cases pass on the reviewed implementation. The exact N08 mutation
+was applied to a disposable source copy with bytecode writes disabled:
+
+| Mutation | Result |
+| --- | --- |
+| N08: add `and not callable(more)` to the string-template classification | All four overflow cases fail because the callback runs; both non-overflow cases pass |
+
+After byte-for-byte restoration, all six cases pass again. The repository's
+production files were never mutated. Replay logs are retained under
+`humanjoin-cert/fix-qa-r2-4ee3365/` in the local evidence archive.
+
+Each required gate exits 0 on CPython 3.14.6: `ruff format --check .` (45 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (1,065 passed,
+zero skips, 53.50 seconds). Strict typing of source and tests also passes
+(37 files). The full suite uses the existing manifest-checked reference files,
+builds and tests the installed wheel and both CLI entry points, and exercises
+the live PyPI 0.2.0 upgrade with a newly built wheel. Per-test timeouts are
+300 seconds; temporary files, caches and gate logs use the scratch archive.
+
+Independent same-lens verification remains a separate stage; these checks do
+not claim a new independent PASS verdict.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. All six findings from round 1 after
-resumed preparation are fixed above and await independent verification for
-item 19. No new independent PASS is claimed.
+Item 16 remains a separate review stage. The round 1 fixes and round 2 E-03
+contract coverage are recorded above. Independent verification for item 19
+remains separate. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
