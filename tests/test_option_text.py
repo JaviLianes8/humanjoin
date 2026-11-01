@@ -26,6 +26,13 @@ class _Text(str):
         ("\ufeffand", "a \ufeffand b", "a, b, \ufeffand c", "a, b \ufeffand c"),
         ("x\ud800y", "a x\ud800y b", "a, b, x\ud800y c", "a, b x\ud800y c"),
         ("x\udfffy", "a x\udfffy b", "a, b, x\udfffy c", "a, b x\udfffy c"),
+        (
+            "x\ud83d\ude00y",
+            "a x\ud83d\ude00y b",
+            "a, b, x\ud83d\ude00y c",
+            "a, b x\ud83d\ude00y c",
+        ),
+        ("x\U0001f600y", "a x\U0001f600y b", "a, b, x\U0001f600y c", "a, b x\U0001f600y c"),
     ],
 )
 def test_joiners_preserve_conjunction_code_points(
@@ -52,6 +59,18 @@ def test_joiners_preserve_conjunction_code_points(
         ("\ufeffand", "a \ufeffand 2 more", "a, b, \ufeffand 2 more", "a, b \ufeffand 2 more"),
         ("x\ud800y", "a x\ud800y 2 more", "a, b, x\ud800y 2 more", "a, b x\ud800y 2 more"),
         ("x\udfffy", "a x\udfffy 2 more", "a, b, x\udfffy 2 more", "a, b x\udfffy 2 more"),
+        (
+            "x\ud83d\ude00y",
+            "a x\ud83d\ude00y 2 more",
+            "a, b, x\ud83d\ude00y 2 more",
+            "a, b x\ud83d\ude00y 2 more",
+        ),
+        (
+            "x\U0001f600y",
+            "a x\U0001f600y 2 more",
+            "a, b, x\U0001f600y 2 more",
+            "a, b x\U0001f600y 2 more",
+        ),
     ],
 )
 def test_overflow_preserves_conjunction_code_points(
@@ -73,6 +92,8 @@ def test_overflow_preserves_conjunction_code_points(
         ("\ufeff{n} more", "\ufeff2 more"),
         ("x\ud800{n}y", "x\ud8002y"),
         ("x\udfff{n}y", "x\udfff2y"),
+        ("x\ud83d\ude00{n}y", "x\ud83d\ude002y"),
+        ("x\U0001f600{n}y", "x\U0001f6002y"),
     ],
 )
 def test_overflow_templates_preserve_code_points(
@@ -83,7 +104,19 @@ def test_overflow_templates_preserve_code_points(
 
 
 @pytest.mark.parametrize("text_type", [str, _Text])
-@pytest.mark.parametrize("literal", ["\r\n", "e\u0301", "x\x00y", "\ufeff", "x\ud800y", "x\udfffy"])
+@pytest.mark.parametrize(
+    "literal",
+    [
+        "\r\n",
+        "e\u0301",
+        "x\x00y",
+        "\ufeff",
+        "x\ud800y",
+        "x\udfffy",
+        "x\ud83d\ude00y",
+        "x\U0001f600y",
+    ],
+)
 @pytest.mark.parametrize(
     ("field", "items", "expected"),
     [
@@ -107,7 +140,17 @@ def test_custom_pattern_fields_preserve_code_points(
 
 @pytest.mark.parametrize("text_type", [str, _Text])
 @pytest.mark.parametrize(
-    "language", ["\r\n", "e\u0301", "e\x00s", "\ufeffes", "es\ud800", "es\udfff"]
+    "language",
+    [
+        "\r\n",
+        "e\u0301",
+        "e\x00s",
+        "\ufeffes",
+        "es\ud800",
+        "es\udfff",
+        "es\ud83d\ude00",
+        "es\U0001f600",
+    ],
 )
 def test_custom_language_preserves_code_points(text_type: type[str], language: str) -> None:
     field = "{0} y {1}"

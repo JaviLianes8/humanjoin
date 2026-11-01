@@ -65,6 +65,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts preserve adjacent high/low surrogate code points as distinct from
+  their corresponding supplementary Unicode character in conjunctions, overflow
+  templates, all custom pattern fields and stored custom language values,
+  including string subclasses. These contracts preserve existing behavior.
 - Contracts preserve lone high and low surrogates in conjunctions, overflow
   templates, all custom pattern fields and stored custom language values,
   including string subclasses. These contracts preserve existing behavior.
