@@ -103,8 +103,8 @@ def resolve_locale(locale: str) -> str:
     case. Deprecated codes are replaced (``iw`` is ``he``, ``sh`` is ``sr-Latn``, ``UK`` is
     ``GB``), and where a language is written in several scripts the likely one is added
     (``zh-TW`` reads ``zh-Hant``, ``zh-SG`` reads ``zh-Hans-SG``). A locale without data of its
-    own falls back through the CLDR parent locales, then by dropping subtags (``en-IN`` reads
-    ``en-IN`` itself, ``pt-FR`` reads ``pt-PT``, ``de-AT-1996`` reads ``de-AT``).
+    own falls back through the CLDR parent locales, then by dropping subtags (``pt-FR``
+    reads ``pt-PT``, ``de-AT-1996`` reads ``de-AT``).
     ``und`` and ``root`` name the root locale.
     Raises ``LookupError`` when no language with data is reached, so an unknown language
     never reads another language's patterns silently.

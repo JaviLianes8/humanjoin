@@ -90,6 +90,19 @@ def test_large_lists_and_reversed_wrappers_keep_every_item() -> None:
     assert pattern.format(["x"] * size) == "(x" * (size - 1) + "x" + ")" * (size - 1)
 
 
+@pytest.mark.parametrize("seed", [917, 20261101])
+def test_seeded_tail_templates_have_only_bounded_value_errors(seed: int) -> None:
+    rng = random.Random(seed)
+    for _ in range(5000):
+        template = "".join(rng.choices("{n}01:!sr.a[]_x\x00\ud800", k=rng.randrange(100)))
+        try:
+            result = join_max("abc", 1, more=template)
+        except ValueError as error:
+            assert len(str(error)) < 120 and error.__suppress_context__
+        else:
+            assert result == "a and " + template.format(n=2)
+
+
 def test_items_are_stringified_once_even_when_hidden() -> None:
     calls: list[int] = []
 
