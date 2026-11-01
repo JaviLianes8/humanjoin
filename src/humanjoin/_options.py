@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 
 def text_option(value: object, name: str) -> str:
-    if not isinstance(value, str):
+    if not issubclass(type(value), str):
         raise TypeError(f"{name} must be a str")
-    return str.__str__(value)
+    return str.__str__(cast(str, value))
 
 
 def locale_option(value: object) -> str:

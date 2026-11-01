@@ -35,6 +35,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Text option validation checks actual string ancestry, so a non-string value's
+  overridden `__class__` property cannot run or replace the documented `TypeError`.
+  This covers locales, list types/styles, conjunctions and custom pattern fields.
 - CLDR aliases follow field-based precedence and repeat until canonical, so
   `nor-nynorsk`, `nor-bokmal` and `aar-saaho` select `nn`, `nb` and `ssy`.
 - Multi-variant locale fallback searches available combinations before the base,
@@ -62,6 +65,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts reject noninteger limits with raising `__class__` properties through
+  both truncating functions without invoking the property or consuming items.
 - Exact-byte contracts preserve noninitial stdin BOM characters through both CLI
   entry points while removing an initial BOM. Locale contracts require the correct
   source language for compound aliases and preserve unrelated variants through aliasing.

@@ -15,6 +15,7 @@ def _hook(*args: object, **kwargs: object) -> NoReturn:
 
 
 class _Text(str):
+    __class__ = property(_hook)
     __str__ = _hook
     __len__ = _hook
     __hash__ = _hook
