@@ -76,5 +76,15 @@ def parse(locale: str, data: dict[str, Any]) -> tuple[str, str, str, list[str]]:
         raise ValueError("extended language subtags are not supported")
     language, script, region, variants = _fields(subtags)
     script = script or _MODIFIERS.get(modifier.lower(), "")
-    region = data["regions"].get(region, region)
-    return _alias(language, script, region, variants, data["aliases"])
+    while True:
+        language, script, region, variants = _alias(
+            language, script, region, variants, data["aliases"]
+        )
+        replacements = data["regions"].get(region)
+        if replacements is None:
+            return language, script, region, variants
+        candidates = replacements.split()
+        likely = data["likelyRegions"].get(
+            f"{language}-{script}", data["likelyRegions"].get(language)
+        )
+        region = likely if likely in candidates else candidates[0]

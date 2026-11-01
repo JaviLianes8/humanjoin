@@ -76,8 +76,13 @@ def derive(upstream: Path = UPSTREAM) -> dict[str, Any]:
             "root", "und"
         ),
         "scripts": _likely_scripts(locales, likely),
-        "aliases": _language_aliases(locales, aliases["languageAlias"]),
+        "aliases": _language_aliases(aliases["languageAlias"]),
         "regions": _region_aliases(aliases["territoryAlias"]),
+        "likelyRegions": {
+            key: value.split("-")[2]
+            for key, value in sorted(likely.items())
+            if "-" not in key or (len(key.split("-")) == 2 and len(key.split("-")[1]) == 4)
+        },
     }
 
 
@@ -98,26 +103,26 @@ def _likely_scripts(locales: dict[str, list[int]], likely: dict[str, str]) -> di
     return found
 
 
-def _language_aliases(locales: dict[str, list[int]], table: dict[str, Any]) -> dict[str, str]:
-    """Language codes CLDR replaces, mapped to a replacement whose language has data.
+def _language_aliases(table: dict[str, Any]) -> dict[str, str]:
+    """Language codes CLDR replaces, regardless of available pattern data.
 
     A replacement may carry a script or region (``sh`` is ``sr-Latn``, ``cnr`` is ``sr-ME``).
     """
-    languages = {name.split("-")[0] for name in locales}
     found: dict[str, str] = {}
     for key, entry in sorted(table.items()):
         target = entry["_replacement"]
-        if TAG.fullmatch(key) and TAG.fullmatch(target) and target.split("-")[0] in languages:
+        if TAG.fullmatch(key) and TAG.fullmatch(target):
             found[key] = target
     return found
 
 
 def _region_aliases(table: dict[str, Any]) -> dict[str, str]:
-    """Region codes CLDR replaces by exactly one other region (``UK`` is ``GB``)."""
+    """Region replacements in CLDR preference order (``200`` is ``CZ SK``)."""
     return {
         key: entry["_replacement"]
         for key, entry in sorted(table.items())
-        if REGION.fullmatch(key) and REGION.fullmatch(entry["_replacement"])
+        if REGION.fullmatch(key)
+        and all(REGION.fullmatch(region) for region in entry["_replacement"].split())
     }
 
 

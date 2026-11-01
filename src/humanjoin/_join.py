@@ -12,7 +12,7 @@ __all__ = ["join", "join_max"]
 
 def _options(conj: str, oxford: bool) -> str:
     conj = text_option(conj, "conj")
-    if not isinstance(oxford, bool):
+    if type(oxford) is not bool:
         raise TypeError("oxford must be a bool")
     return conj
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Iterable
 from string import Formatter
-from typing import TypeAlias
+from typing import TypeAlias, cast
 from unicodedata import decimal
 
 More: TypeAlias = str | Callable[[int], object]
@@ -38,13 +38,16 @@ def truncate(items: Iterable[object], limit: int | None, more: More) -> list[str
         limit = int.__int__(limit)
         if limit < 0:
             raise ValueError("limit must not be negative")
-    if not isinstance(more, str) and not callable(more):
+    template = str.__str__(cast(str, more)) if issubclass(type(more), str) else None
+    if template is None and not callable(more):
         raise TypeError("more must be a str or a callable")
-    if isinstance(more, str):
-        more = str.__str__(more)
     parts = [str(item) for item in items]
     if limit is None or len(parts) <= limit:
         return parts
     hidden = len(parts) - limit
-    tail = _render(more, hidden) if isinstance(more, str) else str(more(hidden))
+    if template is not None:
+        tail = _render(template, hidden)
+    else:
+        assert callable(more)
+        tail = str(more(hidden))
     return [*parts[:limit], tail]

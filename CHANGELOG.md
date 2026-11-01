@@ -35,6 +35,17 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Oxford flag validation requires an actual boolean, so spoofed or raising
+  `__class__` properties cannot bypass validation or replace `TypeError`.
+- Overflow tails are classified by actual string ancestry. Callable tails with
+  overridden `__class__` properties work in both truncating functions, while
+  invalid tails raise `TypeError` before item iteration without reading the property.
+- Multi-target territory aliases select the likely territory for the canonical
+  language and script when available among the replacements, otherwise the first
+  replacement. For example, `en-200` selects `en-CZ` and `kk-SU` selects `kk-KZ`.
+- Language aliases are retained even when the replacement has no bundled patterns.
+  Deprecated spellings such as `zh-hakka`, `zh-xiang` and `hy-arevmda` now raise
+  `LookupError`, matching their canonical spellings `hak`, `hsn` and `hyw`.
 - Text option validation checks actual string ancestry, so a non-string value's
   overridden `__class__` property cannot run or replace the documented `TypeError`.
   This covers locales, list types/styles, conjunctions and custom pattern fields.
@@ -65,6 +76,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts require `supported_locales()` to return an immutable tuple and prevent
+  extension or private-use payloads from selecting available locale variants.
+  These checks preserve existing behavior.
 - Contracts preserve adjacent high/low surrogate code points as distinct from
   their corresponding supplementary Unicode character in conjunctions, overflow
   templates, all custom pattern fields and stored custom language values,
