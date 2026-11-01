@@ -217,8 +217,8 @@ claim a new independent PASS verdict.
 ## QA lenses, round 2
 
 Reviewed base: `8737287b4fc20583dd66efbdb401bf5fad264d66`.
-Fix commit: the commit introducing this section
-(`fix alias precedence and variant fallback contracts`), dated 2026-11-01.
+Fix commit: `2be89fbcd0d9734e17c6bd77954baff8c640793b`
+(`fix alias precedence and variant fallback contracts`), pushed on 2026-11-01.
 
 All eight supplied findings are addressed. Before production edits, the new
 contracts produced 18 failures and 50 passes on the reviewed base. Those failures
