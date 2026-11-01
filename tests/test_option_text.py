@@ -22,6 +22,8 @@ class _Text(str):
     [
         ("\r\n", "a \r\n b", "a, b, \r\n c", "a, b \r\n c"),
         ("e\u0301", "a e\u0301 b", "a, b, e\u0301 c", "a, b e\u0301 c"),
+        ("x\x00y", "a x\x00y b", "a, b, x\x00y c", "a, b x\x00y c"),
+        ("\ufeffand", "a \ufeffand b", "a, b, \ufeffand c", "a, b \ufeffand c"),
     ],
 )
 def test_joiners_preserve_conjunction_code_points(
@@ -44,6 +46,8 @@ def test_joiners_preserve_conjunction_code_points(
     [
         ("\r\n", "a \r\n 2 more", "a, b, \r\n 2 more", "a, b \r\n 2 more"),
         ("e\u0301", "a e\u0301 2 more", "a, b, e\u0301 2 more", "a, b e\u0301 2 more"),
+        ("x\x00y", "a x\x00y 2 more", "a, b, x\x00y 2 more", "a, b x\x00y 2 more"),
+        ("\ufeffand", "a \ufeffand 2 more", "a, b, \ufeffand 2 more", "a, b \ufeffand 2 more"),
     ],
 )
 def test_overflow_preserves_conjunction_code_points(
@@ -57,7 +61,13 @@ def test_overflow_preserves_conjunction_code_points(
 @pytest.mark.parametrize("text_type", [str, _Text])
 @pytest.mark.parametrize("function", [join_max, format_list])
 @pytest.mark.parametrize(
-    ("more", "expected"), [("\r\n{n}\r\n", "\r\n2\r\n"), ("e\u0301{n}", "e\u03012")]
+    ("more", "expected"),
+    [
+        ("\r\n{n}\r\n", "\r\n2\r\n"),
+        ("e\u0301{n}", "e\u03012"),
+        ("x\x00{n}y", "x\x002y"),
+        ("\ufeff{n} more", "\ufeff2 more"),
+    ],
 )
 def test_overflow_templates_preserve_code_points(
     text_type: type[str], function: Callable[..., str], more: str, expected: str
@@ -67,7 +77,7 @@ def test_overflow_templates_preserve_code_points(
 
 
 @pytest.mark.parametrize("text_type", [str, _Text])
-@pytest.mark.parametrize("literal", ["\r\n", "e\u0301"])
+@pytest.mark.parametrize("literal", ["\r\n", "e\u0301", "x\x00y", "\ufeff"])
 @pytest.mark.parametrize(
     ("field", "items", "expected"),
     [
@@ -90,7 +100,7 @@ def test_custom_pattern_fields_preserve_code_points(
 
 
 @pytest.mark.parametrize("text_type", [str, _Text])
-@pytest.mark.parametrize("language", ["\r\n", "e\u0301"])
+@pytest.mark.parametrize("language", ["\r\n", "e\u0301", "e\x00s", "\ufeffes"])
 def test_custom_language_preserves_code_points(text_type: type[str], language: str) -> None:
     field = "{0} y {1}"
     pattern = ListPattern(field, field, field, field, language=text_type(language))

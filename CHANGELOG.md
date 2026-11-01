@@ -65,6 +65,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts preserve embedded NULs and leading BOMs in text options, retain
+  region/script-suffixed custom language strings without contextual rewriting,
+  and distinguish empty custom language strings from `None`. Uppercase and
+  mixed-case type/style selectors raise `ValueError` before item iteration.
+  These contracts include string subclasses and preserve existing behavior.
 - Contracts preserve exact CRLF and decomposed Unicode text in conjunctions,
   overflow templates and custom pattern fields, including string subclasses.
   Custom language codes retain their case and select contextual rules only by

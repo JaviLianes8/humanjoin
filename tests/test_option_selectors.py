@@ -1,4 +1,4 @@
-"""Hand-written contracts: locale, type and style selectors reject padding."""
+"""Hand-written contracts: selectors reject padding and require exact type/style case."""
 
 from __future__ import annotations
 
@@ -77,3 +77,35 @@ def test_list_functions_reject_padded_styles(
     list_pattern(style=style)
     with pytest.raises(ValueError, match="style"):
         function(*args, style=text_type(padding[0] + style + padding[1]))
+
+
+@pytest.mark.parametrize("text_type", [str, _Text])
+@pytest.mark.parametrize("case", [str.upper, str.title])
+@pytest.mark.parametrize("kind", ["conjunction", "disjunction", "unit"])
+@pytest.mark.parametrize("function", [list_pattern, format_list])
+def test_list_functions_reject_nonlowercase_types(
+    text_type: type[str],
+    case: Callable[[str], str],
+    kind: ListType,
+    function: Callable[..., object],
+) -> None:
+    args = (_Untouched(),) if function is format_list else ()
+    list_pattern(type=kind)
+    with pytest.raises(ValueError, match=r"^type must be one of conjunction, disjunction, unit$"):
+        function(*args, type=text_type(case(kind)))
+
+
+@pytest.mark.parametrize("text_type", [str, _Text])
+@pytest.mark.parametrize("case", [str.upper, str.title])
+@pytest.mark.parametrize("style", ["long", "short", "narrow"])
+@pytest.mark.parametrize("function", [list_pattern, format_list])
+def test_list_functions_reject_nonlowercase_styles(
+    text_type: type[str],
+    case: Callable[[str], str],
+    style: ListStyle,
+    function: Callable[..., object],
+) -> None:
+    args = (_Untouched(),) if function is format_list else ()
+    list_pattern(style=style)
+    with pytest.raises(ValueError, match=r"^style must be one of long, short, narrow$"):
+        function(*args, style=text_type(case(style)))
