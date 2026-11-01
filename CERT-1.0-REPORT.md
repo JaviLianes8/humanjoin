@@ -18,7 +18,7 @@ Progress:
 - [x] Author mutation round (item 18)
 - [ ] Independent reviewer (item 16, separate stage)
 - [ ] Five independent QA lenses (item 19, separate stage)
-- [ ] Release PR and guard; merge and publication are separate stages (item 17)
+- [x] Release PR #3 and guard CLEAN; merge and publication are separate stages (item 17)
 
 ## API and behavior
 
@@ -40,6 +40,7 @@ Fetched and regenerated on 2026-11-01 with `scripts/fetch_upstream.py`; all six
 manifest sizes and SHA-256 values matched. `tests/upstream/MANIFEST.json` records
 exact URLs, revisions, licenses and checksums. Fetched files stay outside the repo
 in the selected `HUMANJOIN_UPSTREAM` folder. Missing files cause clean test skips.
+The absent-reference check passes one synthetic test and skips nine reference tests.
 
 - CLDR 48 npm packages: every one of 766 locales and nine type/style combinations
   compared directly to fetched list patterns; the entire shipped table is rederived.
@@ -158,7 +159,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 14 | PASS: sdist and wheel contents inspected, both licenses included |
 | 15 | PASS: four gates each exit 0 |
 | 16 | Pending separate independent review |
-| 17 | Release PR and guard pending; merge and publication are separate stages |
+| 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
 | 19 | Pending separate QA lenses a, b, c, d and e |
 
@@ -166,3 +167,4 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 
 Items 16 and 19 have not been run for this release. No independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
+The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
