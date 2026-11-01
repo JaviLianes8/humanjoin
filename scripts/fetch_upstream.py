@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FOLDER = ROOT / "tests" / "upstream"
+FOLDER = Path(os.environ.get("HUMANJOIN_UPSTREAM", ROOT / "tests" / "upstream"))
 
 
 def _download(url: str) -> bytes:
@@ -30,7 +31,9 @@ def _download(url: str) -> bytes:
 
 
 def main() -> int:
-    manifest = json.loads((FOLDER / "MANIFEST.json").read_text(encoding="utf-8"))
+    manifest_path = ROOT / "tests" / "upstream" / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    FOLDER.mkdir(parents=True, exist_ok=True)
     failed = 0
     for name, entry in manifest.items():
         target = FOLDER / name

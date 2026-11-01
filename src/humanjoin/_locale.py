@@ -23,12 +23,22 @@ def table() -> dict[str, Any]:
 
 
 def cldr_version() -> str:
-    """The CLDR release the pattern table was derived from."""
+    """The CLDR release the pattern table was derived from.
+
+    >>> cldr_version()
+    '48.0.0'
+    """
     return str(table()["cldr"])
 
 
 def supported_locales() -> tuple[str, ...]:
-    """Every CLDR locale with list patterns, sorted; ``und`` is the root locale."""
+    """Every CLDR locale with list patterns, sorted; ``und`` is the root locale.
+
+    >>> len(supported_locales())
+    766
+    >>> 'und' in supported_locales()
+    True
+    """
     return tuple(sorted(table()["locales"]))
 
 
@@ -40,16 +50,18 @@ _MODIFIERS = {"latin": "Latn", "cyrillic": "Cyrl", "devanagari": "Deva"}
 def _parse(locale: str) -> tuple[str, str, str, list[str]]:
     """Language, script, region (empty when absent) and variants of a locale tag."""
     if not isinstance(locale, str):
-        raise TypeError(f"locale must be a str, not {type(locale).__name__}")
+        raise TypeError("locale must be a str")
+    if len(locale) > 255:
+        raise ValueError("locale must contain at most 255 characters")
     tag, _, modifier = locale.partition("@")
     subtags = tag.split(".", 1)[0].replace("_", "-").split("-")  # POSIX "es_ES.UTF-8"
     if subtags[0].lower() == "root":
         subtags[0] = "und"
     if not all(_SUBTAG.fullmatch(part) for part in subtags) or not _LANGUAGE.fullmatch(subtags[0]):
-        raise ValueError(f"not a locale tag: {locale!r}")
+        raise ValueError("not a locale tag")
     rest = subtags[1:]
     if rest and len(rest[0]) == 3 and rest[0].isalpha():
-        raise ValueError(f"extended language subtags are not supported: {locale!r}")
+        raise ValueError("extended language subtags are not supported")
     script = rest.pop(0).title() if rest and len(rest[0]) == 4 and rest[0].isalpha() else ""
     script = script or _MODIFIERS.get(modifier.lower(), "")
     region = ""
@@ -90,11 +102,17 @@ def resolve_locale(locale: str) -> str:
     Accepts BCP 47 (``pt-BR``) and POSIX (``pt_BR.UTF-8``, ``sr_RS@latin``) spellings in any
     case. Deprecated codes are replaced (``iw`` is ``he``, ``sh`` is ``sr-Latn``, ``UK`` is
     ``GB``), and where a language is written in several scripts the likely one is added
-    (``zh-TW`` is ``zh-Hant-TW``, ``zh-SG`` is ``zh-Hans-SG``). A locale without data of its
+    (``zh-TW`` reads ``zh-Hant``, ``zh-SG`` reads ``zh-Hans-SG``). A locale without data of its
     own falls back through the CLDR parent locales, then by dropping subtags (``en-IN`` reads
-    ``en-001``, ``de-AT-1996`` reads ``de-AT``). ``und`` and ``root`` name the root locale.
+    ``en-IN`` itself, ``pt-FR`` reads ``pt-PT``, ``de-AT-1996`` reads ``de-AT``).
+    ``und`` and ``root`` name the root locale.
     Raises ``LookupError`` when no language with data is reached, so an unknown language
     never reads another language's patterns silently.
+
+    >>> resolve_locale("pt_BR.UTF-8")
+    'pt'
+    >>> resolve_locale("zh-TW")
+    'zh-Hant'
     """
     language, script, region, variants = _parse(locale)
     data = table()
@@ -116,5 +134,5 @@ def resolve_locale(locale: str) -> str:
             found = tagged
     found = found or _walk(base)
     if found is None:
-        raise LookupError(f"no list patterns for locale {locale!r}")
+        raise LookupError("no list patterns for locale")
     return found

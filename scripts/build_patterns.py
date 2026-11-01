@@ -11,6 +11,7 @@ and the language codes CLDR replaces.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import tarfile
@@ -18,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-UPSTREAM = ROOT / "tests" / "upstream"
+UPSTREAM = Path(os.environ.get("HUMANJOIN_UPSTREAM", ROOT / "tests" / "upstream"))
 TARGET = ROOT / "src" / "humanjoin" / "_cldr.json"
 VERSION = "48.0.0"
 

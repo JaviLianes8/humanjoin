@@ -33,6 +33,18 @@ def test_every_python_example_prints_its_comments() -> None:
     assert checked == 19
 
 
+def test_guide_examples_print_their_comments() -> None:
+    guide = (ROOT / "GUIDE.md").read_text(encoding="utf-8")
+    blocks = re.findall(r"```python\n(.*?)```", guide, flags=re.DOTALL)
+    assert len(blocks) == 2
+    for block in blocks:
+        expected = [line[2:] for line in block.splitlines() if line.startswith("# ")]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            exec(compile(block, "GUIDE.md", "exec"), {"__name__": "guide"})
+        assert out.getvalue().splitlines() == expected
+
+
 def test_every_shell_example_prints_its_output() -> None:
     examples = re.findall(r"^\$ (.+)\n(.+)$", README, flags=re.MULTILINE)
     assert len(examples) == 2

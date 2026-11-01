@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -64,10 +65,10 @@ def _contextual(pattern: str, last: str, language: str | None) -> str:
 
 def _check(name: str, pattern: object) -> None:
     if not isinstance(pattern, str):
-        raise TypeError(f"{name} must be a str, not {type(pattern).__name__}")
+        raise TypeError(f"{name} must be a str")
     for slot in ("{0}", "{1}"):
         if pattern.count(slot) != 1:
-            raise ValueError(f"{name} must contain {slot} exactly once: {pattern!r}")
+            raise ValueError(f"{name} must contain {slot} exactly once")
 
 
 def _fill(pattern: str, joined: str, item: str) -> str:
@@ -76,6 +77,17 @@ def _fill(pattern: str, joined: str, item: str) -> str:
     if first < second:
         return pattern[:first] + joined + pattern[first + 3 : second] + item + pattern[second + 3 :]
     return pattern[:second] + item + pattern[second + 3 : first] + joined + pattern[first + 3 :]
+
+
+def _wrap(chunks: deque[str], pattern: str, item: str) -> None:
+    # Keep the accumulated text as chunks, so each step copies only the new material.
+    before, after = pattern.split("{0}")
+    if "{1}" in before:
+        before = before.replace("{1}", item)
+    else:
+        after = after.replace("{1}", item)
+    chunks.appendleft(before)
+    chunks.append(after)
 
 
 @dataclass(frozen=True)
@@ -88,7 +100,13 @@ class ListPattern:
     ``language`` selects the contextual rules the ICU formatter applies on top of the
     patterns: ``es`` (``y`` to ``e``, ``o`` to ``u``) and ``he`` (a hyphen after the letter vav
     before a word in another script); any other value applies none.
+
+    >>> pattern = ListPattern("{0} + {1}", "{0}, {1}", "{0}, {1}", "{0} + {1}")
+    >>> pattern.format(["a", "b", "c"])
+    'a, b + c'
     """
+
+    __module__ = "humanjoin"
 
     two: str
     start: str
@@ -100,10 +118,15 @@ class ListPattern:
         for name in ("two", "start", "middle", "end"):
             _check(name, getattr(self, name))
         if self.language is not None and not isinstance(self.language, str):
-            raise TypeError(f"language must be a str or None, not {type(self.language).__name__}")
+            raise TypeError("language must be a str or None")
 
     def format(self, items: Iterable[object]) -> str:
-        """Join ``items``, each converted with ``str``, into one phrase."""
+        """Join ``items``, each converted with ``str``, into one phrase.
+
+        >>> from humanjoin import list_pattern
+        >>> list_pattern("en").format([1, 2])
+        '1 and 2'
+        """
         parts = [str(item) for item in items]
         if not parts:
             return ""
@@ -112,7 +135,9 @@ class ListPattern:
         last = parts[-1]
         if len(parts) == 2:
             return _fill(_contextual(self.two, last, self.language), parts[0], last)
-        text = _fill(self.start, parts[0], parts[1])
+        chunks = deque([parts[0]])
+        _wrap(chunks, self.start, parts[1])
         for item in parts[2:-1]:
-            text = _fill(self.middle, text, item)
-        return _fill(_contextual(self.end, last, self.language), text, last)
+            _wrap(chunks, self.middle, item)
+        _wrap(chunks, _contextual(self.end, last, self.language), last)
+        return "".join(chunks)

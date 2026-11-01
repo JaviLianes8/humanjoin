@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
-from typing import TextIO, cast
+from typing import NoReturn, TextIO, cast
 
 from ._format import ListStyle, ListType, format_list
 from ._locale import cldr_version, supported_locales
@@ -15,10 +15,16 @@ __all__ = ["main"]
 _BOM = chr(0xFEFF)
 
 
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        self.print_usage(sys.stderr)
+        self.exit(2, "humanjoin: error: invalid choice or value; use --help\n")
+
+
 def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="humanjoin",
         description="Join items into one phrase the way a language writes a list (Unicode CLDR).",
         epilog="Without ITEM arguments the items are read from stdin, one per non-blank line.",
@@ -89,7 +95,7 @@ def main(
         stdout.write("\n".join(supported_locales()) + "\n")
         return 0
     if not args.items and stdin.isatty():
-        parser.error("no items: pass ITEM arguments or pipe them on stdin")
+        parser.exit(2, "humanjoin: error: no items: pass ITEM arguments or pipe them on stdin\n")
     try:
         items = args.items or _read_items(stdin)
     except UnicodeDecodeError:

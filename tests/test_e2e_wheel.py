@@ -58,7 +58,7 @@ def _run(
     *cmd: str | Path, cwd: Path | None = None, stdin: bytes = b""
 ) -> subprocess.CompletedProcess[bytes]:
     return subprocess.run(
-        [str(c) for c in cmd], cwd=cwd, input=stdin, capture_output=True, check=False
+        [str(c) for c in cmd], cwd=cwd, input=stdin, capture_output=True, check=False, timeout=240
     )
 
 
@@ -107,3 +107,12 @@ def test_installed_wheel_end_to_end(tmp_path: Path) -> None:
         assert shown.stdout.decode("utf-8").strip() == "a" + chr(0x548C) + "b"
         failed = _run(*command, "a", "-l", "xx", cwd=work)
         assert failed.returncode == 2 and b"no list patterns" in failed.stderr
+        version = _run(*command, "--version", cwd=work)
+        assert (
+            version.returncode == 0
+            and version.stdout
+            == b"humanjoin 1.0.0 (CLDR 48.0.0)\r\n".replace(b"\r\n", os.linesep.encode())
+        )
+        malformed = _run(*command, cwd=work, stdin=b"\xff\n")
+        assert malformed.returncode == 2 and b"not valid UTF-8" in malformed.stderr
+        assert b"Traceback" not in malformed.stderr

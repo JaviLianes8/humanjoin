@@ -51,7 +51,9 @@ def test_the_shipped_table_is_a_fresh_derivation_from_cldr() -> None:
     read_upstream("cldr-core-48.0.0.tgz")
     read_upstream("cldr-misc-full-48.0.0.tgz")
     build = _build_script()
-    shipped = (ROOT / "src" / "humanjoin" / "_cldr.json").read_text(encoding="ascii")
+    from importlib.resources import files
+
+    shipped = files("humanjoin").joinpath("_cldr.json").read_text(encoding="ascii")
     assert build.render(build.derive()) == shipped
 
 

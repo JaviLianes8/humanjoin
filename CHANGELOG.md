@@ -6,6 +6,44 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-01
+
+### Stable
+
+- The ten public names, function signatures and defaults of 0.2.0 remain supported.
+  CLDR 48.0.0 supplies 766 locales and all nine list type/style combinations. Custom
+  patterns, contextual Spanish and Hebrew rules, truncation and both CLI entry points
+  are stable. Python 3.10 and later are supported without runtime dependencies.
+
+### Changed
+
+- Library validation errors and CLI argument errors no longer echo supplied values or
+  type names. Built-in `TypeError`, `ValueError` and `LookupError` remain the error families.
+- `oxford` must be a `bool`; other values now raise `TypeError` rather than using truthiness.
+- `more` must be text or callable even when no items are hidden. Limit and tail type
+  validation, and `join_max` conjunction/Oxford validation, now happen before consuming
+  items. Invalid options no longer consume them (template syntax is checked on overflow).
+- Overflow templates allow only the exact field `n`, optional `!s`, `!r` or `!a`, and
+  integer format specifications with width and precision at most 10000. Nested fields,
+  attribute/index access and excessive padding now raise `ValueError`. Invalid template
+  syntax still matters only when items are hidden; errors suppress the original exception.
+- Locale inputs longer than 255 characters now raise `ValueError` before parsing or caching.
+- `ListPattern` identifies its public module as `humanjoin`. Old pickles still load;
+  new pickles can also be read by 0.2.0 through its existing public re-export.
+- The accidental `annotations` attribute is removed from the package namespace; it
+  was never part of `__all__`.
+
+### Fixed
+
+- Long custom and locale lists are assembled in linear time in the input and output size,
+  including patterns with reversed placeholders, prefixes or suffixes. Results are unchanged.
+
+### Added
+
+- Executable public docstrings, a detailed guide, seeded property tests, installed-wheel
+  and PyPI upgrade checks, and package metadata declaring production stability.
+- `HUMANJOIN_UPSTREAM` selects a separate local folder for fetched reference data.
+
 ## [0.2.0]
 
 ### Added

@@ -66,7 +66,7 @@ def test_parent_root_reads_the_root_patterns() -> None:
 
 @pytest.mark.parametrize("tag", ["xx", "qaa-FR", "abcde"])
 def test_an_unknown_language_raises_lookup_error(tag: str) -> None:
-    with pytest.raises(LookupError, match=tag):
+    with pytest.raises(LookupError, match="no list patterns"):
         resolve_locale(tag)
 
 

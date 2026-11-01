@@ -6,7 +6,9 @@
 //
 //     node scripts/intl_reference.mjs
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("..", import.meta.url);
 const table = JSON.parse(readFileSync(new URL("src/humanjoin/_cldr.json", root), "utf8"));
@@ -76,5 +78,7 @@ for (let point = 0; point <= 0x10ffff; point++) {
 
 const { node, icu, cldr, unicode } = process.versions;
 const body = { node, icu, cldr, unicode, items: ITEMS, cases, contextual, hebrew };
-writeFileSync(new URL("tests/upstream/intl-node.json", root), JSON.stringify(body) + "\n");
+const folder = process.env.HUMANJOIN_UPSTREAM || fileURLToPath(new URL("tests/upstream", root));
+mkdirSync(folder, { recursive: true });
+writeFileSync(join(folder, "intl-node.json"), JSON.stringify(body) + "\n");
 console.log(`intl-node.json: ${cases.length} cases, ${contextual.length} contextual`);
