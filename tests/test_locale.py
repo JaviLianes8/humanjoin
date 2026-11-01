@@ -25,7 +25,7 @@ from humanjoin import (
         ("EN-us", "en"),
         ("en_IN.UTF-8", "en-IN"),
         ("en-ZZ", "en"),
-        ("en-Cyrl", "en"),
+        ("en-Cyrl", "und"),
         ("de-AT-1996", "de-AT"),
         ("de-CH-u-co-phonebk", "de-CH"),
         ("de-x-private", "de"),

@@ -35,11 +35,26 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Unicode decimal digits, including mixed alphabets and leading zeros, obey the 10000
+  overflow-template width and precision limits in both public functions and the CLI.
+- Compound CLDR language aliases such as `no-nynorsk` resolve before fallback. Explicit
+  scripts and regions are retained, and removing a default script preserves variant locales
+  such as `ca-Latn-ES-valencia` (`ca-ES-valencia`).
+- Locales with an unsupported nonlikely script, such as `ru-Latn` and `en-Cyrl`, inherit
+  CLDR root patterns instead of the language's usual script. Unknown languages still fail.
+- String and integer option subclasses are normalized to their underlying built-in values
+  before validation, hashing or formatting. Overridden methods can no longer bypass bounds
+  or inject errors. This includes custom pattern fields; item and callback coercion is unchanged.
+- Invalid CLI locale and limit options fail before reading stdin, including an open pipe.
+  Template syntax is still checked only when items overflow the limit.
 - Long custom and locale lists are assembled in linear time in the input and output size,
   including patterns with reversed placeholders, prefixes or suffixes. Results are unchanged.
 
 ### Added
 
+- Exact-byte subprocess contracts preserve whitespace in ITEM arguments through both CLI
+  entry points. Callable-tail contracts retain eager `str` conversion followed by item
+  coercion, including a callback result whose `__str__` returns a string subclass at limit zero.
 - Executable public docstrings, a detailed guide, seeded property tests, installed-wheel
   and PyPI upgrade checks, and package metadata declaring production stability.
 - `HUMANJOIN_UPSTREAM` selects a separate local folder for fetched reference data.

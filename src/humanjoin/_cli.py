@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from typing import NoReturn, TextIO, cast
 
 from ._format import ListStyle, ListType, format_list
@@ -67,11 +67,14 @@ def _utf8(stream: TextIO, encoding: str = "utf-8") -> None:
         reconfigure(encoding=encoding)
 
 
-def _read_items(stdin: TextIO) -> list[str]:
-    items = [line.strip() for line in stdin]
-    if items:
-        items[0] = items[0].removeprefix(_BOM).strip()
-    return [item for item in items if item]
+def _read_items(stdin: TextIO) -> Iterator[str]:
+    # Defer reads until format_list has validated all semantic options.
+    for index, line in enumerate(stdin):
+        item = line.strip()
+        if index == 0:
+            item = item.removeprefix(_BOM).strip()
+        if item:
+            yield item
 
 
 def main(
@@ -98,9 +101,6 @@ def main(
         parser.exit(2, "humanjoin: error: no items: pass ITEM arguments or pipe them on stdin\n")
     try:
         items = args.items or _read_items(stdin)
-    except UnicodeDecodeError:
-        parser.exit(2, "humanjoin: error: stdin is not valid UTF-8\n")
-    try:
         text = format_list(
             items,
             args.locale,
@@ -109,6 +109,8 @@ def main(
             limit=args.limit,
             more=args.more,
         )
+    except UnicodeDecodeError:
+        parser.exit(2, "humanjoin: error: stdin is not valid UTF-8\n")
     except (LookupError, ValueError) as error:
         parser.exit(2, f"humanjoin: error: {error}\n")
     stdout.write(text + "\n")

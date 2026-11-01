@@ -6,6 +6,8 @@ from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from ._options import text_option
+
 __all__ = ["ListPattern"]
 
 # Code points whose Unicode script is Hebrew, from Scripts.txt of Unicode 17.0.0
@@ -63,12 +65,12 @@ def _contextual(pattern: str, last: str, language: str | None) -> str:
     return pattern
 
 
-def _check(name: str, pattern: object) -> None:
-    if not isinstance(pattern, str):
-        raise TypeError(f"{name} must be a str")
+def _check(name: str, value: object) -> str:
+    pattern = text_option(value, name)
     for slot in ("{0}", "{1}"):
         if pattern.count(slot) != 1:
             raise ValueError(f"{name} must contain {slot} exactly once")
+    return pattern
 
 
 def _fill(pattern: str, joined: str, item: str) -> str:
@@ -116,9 +118,9 @@ class ListPattern:
 
     def __post_init__(self) -> None:
         for name in ("two", "start", "middle", "end"):
-            _check(name, getattr(self, name))
-        if self.language is not None and not isinstance(self.language, str):
-            raise TypeError("language must be a str or None")
+            object.__setattr__(self, name, _check(name, getattr(self, name)))
+        if self.language is not None:
+            object.__setattr__(self, "language", text_option(self.language, "language"))
 
     def format(self, items: Iterable[object]) -> str:
         """Join ``items``, each converted with ``str``, into one phrase.

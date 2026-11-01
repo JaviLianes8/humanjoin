@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Literal, TypeAlias, get_args
 
 from ._locale import resolve_locale, table
+from ._options import locale_option, text_option
 from ._pattern import ListPattern
 from ._tail import More, truncate
 
@@ -58,12 +59,7 @@ def list_pattern(
     >>> list_pattern("en").two
     '{0} and {1}'
     """
-    for name, value in (("locale", locale), ("type", type), ("style", style)):
-        if not isinstance(value, str):
-            raise TypeError(f"{name} must be a str")
-    if len(locale) > 255:
-        raise ValueError("locale must contain at most 255 characters")
-    return _pattern(locale, type, style)
+    return _pattern(locale_option(locale), text_option(type, "type"), text_option(style, "style"))
 
 
 def format_list(

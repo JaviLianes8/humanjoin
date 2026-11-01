@@ -101,6 +101,10 @@ def test_installed_wheel_end_to_end(tmp_path: Path) -> None:
     commands: list[list[str | Path]] = [[python, "-m", "humanjoin"]]
     if os.environ.get("HUMANJOIN_E2E_NO_SCRIPT") != "1":
         commands.append([script])
+    spaced = [_run(*command, " a ", "\tb\t", " c ", cwd=work) for command in commands]
+    assert [(done.returncode, done.stdout, done.stderr) for done in spaced] == [
+        (0, b" a , \tb\t, and  c " + os.linesep.encode(), b"")
+    ] * len(commands)
     for command in commands:
         shown = _run(*command, "-l", "zh-TW", cwd=work, stdin=b"a\nb\n")
         assert shown.returncode == 0, shown.stderr

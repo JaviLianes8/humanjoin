@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from ._options import text_option
 from ._tail import More, truncate
 
 __all__ = ["join", "join_max"]
 
 
-def _options(conj: str, oxford: bool) -> None:
-    if not isinstance(conj, str):
-        raise TypeError("conj must be a str")
+def _options(conj: str, oxford: bool) -> str:
+    conj = text_option(conj, "conj")
     if not isinstance(oxford, bool):
         raise TypeError("oxford must be a bool")
+    return conj
 
 
 def join(items: Iterable[object], *, conj: str = "and", oxford: bool = True) -> str:
@@ -29,7 +30,7 @@ def join(items: Iterable[object], *, conj: str = "and", oxford: bool = True) -> 
     >>> join([1, 2, 3], conj="or", oxford=False)
     '1, 2 or 3'
     """
-    _options(conj, oxford)
+    conj = _options(conj, oxford)
     parts = [str(item) for item in items]
     if not parts:
         return ""
@@ -63,5 +64,5 @@ def join_max(
     """
     if limit is None:
         raise TypeError("limit must be an int, not None")
-    _options(conj, oxford)
+    conj = _options(conj, oxford)
     return join(truncate(items, limit, more), conj=conj, oxford=oxford)

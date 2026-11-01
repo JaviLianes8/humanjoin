@@ -21,8 +21,12 @@ only the tail. If nothing is hidden, no tail template is parsed or callback call
 `more` is a string or a callable accepting the hidden count and returning an object
 converted with `str`. Templates may contain literal text, escaped braces, and only
 the exact field `{n}`. Python integer formatting and `!s`, `!r`, `!a` conversions
-are supported, with width and precision at most 10000. Attribute/index access and
+are supported, with width and precision at most 10000, including Unicode decimal
+digits and mixed digit alphabets. Attribute/index access and
 nested fields are rejected. The default tail is English; supply a localized one.
+The callback result is converted with `str` when the tail is made, then converted
+again as an item by the final joiner. A string subclass returned by `__str__` thus
+receives its own `__str__` call, including when `limit=0`.
 
 ```python
 from humanjoin import join, join_max, format_list
@@ -48,7 +52,10 @@ Locale lookup accepts case-insensitive BCP 47 style tags and POSIX spellings suc
 as `sr_RS.UTF-8@latin`. Encoding suffixes do not select patterns. The script
 modifiers `latin`, `cyrillic` and `devanagari` do; other modifiers are ignored.
 Deprecated language/region codes, likely scripts and CLDR parent locales are
-applied. Extensions and private-use subtags do not select patterns. This is a
+applied. Compound aliases such as `no-nynorsk` select `nn` while preserving explicit
+script and region fields. Removing a default script retains variants, so
+`ca-Latn-ES-valencia` selects `ca-ES-valencia`.
+Extensions and private-use subtags do not select patterns. This is a
 locale lookup utility, not a full BCP 47 validator: variant and extension grammar
 is not exhaustively checked. Extended language subtags are unsupported.
 
@@ -56,6 +63,8 @@ All tags returned by `supported_locales` resolve to themselves. A tag with its
 own CLDR entry stays that tag even if its patterns equal a parent's. Unknown
 languages raise `LookupError`; explicit `und` and `root` select CLDR root patterns.
 A known CLDR parent may itself select root. Input tags are limited to 255 characters.
+When no exact data or explicit parent exists, a known language with a nonlikely
+script inherits root, as in `ru-Latn` or `en-Cyrl`.
 
 ```python
 from humanjoin import resolve_locale, list_pattern, ListPattern
@@ -96,6 +105,10 @@ last items do not trigger a change. Other languages use the patterns literally.
 | No locale data after lookup | `LookupError` |
 
 Validation messages are bounded and omit supplied values. Invalid options are
+normalized before validation: string and integer subclasses use their underlying
+built-in values, without invoking overridden methods. This applies to locale,
+type, style, conjunction, limit, tail templates and custom pattern fields/language.
+Items and callable-tail results keep the `str` conversion described above. Options are
 checked before consuming items, except template syntax, which is checked only
 when a tail is required. Exceptions raised by user iterators, item `__str__`
 methods or tail callbacks propagate unchanged; their messages are the caller's
@@ -112,13 +125,16 @@ and blank lines are removed. Pipes use UTF-8 output. A terminal without items is
 an error. Empty piped input prints a newline. `--locales` prints one tag per line.
 Success exits 0; usage, locale, template and malformed UTF-8 errors exit 2 on stderr.
 Argument errors do not echo supplied values. Use `--` before items beginning with `-`.
+Invalid locale and limit options exit before reading stdin or waiting for pipe EOF.
 
 ## Upgrading from 0.2.0
 
-All public names, signatures, list data and valid formatting results remain.
+All public names, signatures and the 766 locales' list pattern data remain.
 The [CHANGELOG](https://github.com/JaviLianes8/humanjoin/blob/main/CHANGELOG.md)
-lists the tightened validation: boolean Oxford flag, tail type validation even
-without truncation, bounded locale length and constrained overflow templates.
+lists the tightened validation and corrected locale resolution: compound aliases,
+variant retention and nonlikely-script root inheritance. Validation includes the
+boolean Oxford flag, tail type even without truncation, bounded locale length,
+constrained overflow templates and normalized option subclasses.
 Bad options are now validated before iteration, and messages no longer include
 supplied values. Long custom lists format in linear time. Pickled patterns work
 in both directions across the upgrade; new pickles refer to `humanjoin.ListPattern`.
