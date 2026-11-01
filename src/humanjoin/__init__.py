@@ -7,7 +7,9 @@ from ._join import join, join_max
 from ._locale import cldr_version, resolve_locale, supported_locales
 from ._pattern import ListPattern
 
-__version__ = "0.2.0"
+del annotations
+
+__version__ = "1.0.0"
 
 __all__ = [
     "ListPattern",

@@ -11,6 +11,7 @@ and the language codes CLDR replaces.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import tarfile
@@ -18,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-UPSTREAM = ROOT / "tests" / "upstream"
+UPSTREAM = Path(os.environ.get("HUMANJOIN_UPSTREAM", ROOT / "tests" / "upstream"))
 TARGET = ROOT / "src" / "humanjoin" / "_cldr.json"
 VERSION = "48.0.0"
 
@@ -26,9 +27,11 @@ VERSION = "48.0.0"
 KINDS = [
     (kind, style) for kind in ("standard", "or", "unit") for style in ("", "-short", "-narrow")
 ]
-LANGUAGE = re.compile(r"[a-z]{2,3}")
 REGION = re.compile(r"[A-Z]{2}|\d{3}")
-TAG = re.compile(r"[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?")
+TAG = re.compile(
+    r"(?:[a-z]{2,3}|[a-z]{5,8})(?:-[A-Z][a-z]{3})?(?:-(?:[A-Z]{2}|\d{3}))?"
+    r"(?:-(?:[a-z0-9]{5,8}|[0-9][a-z0-9]{3}))*"
+)
 
 
 def _members(path: Path) -> dict[str, Any]:
@@ -69,23 +72,27 @@ def derive(upstream: Path = UPSTREAM) -> dict[str, Any]:
         "patterns": [list(quad) for quad in pool],
         "locales": locales,
         "parents": parents,
+        "nonlikelyScript": supplemental["_localeRules"]["parentLocale"]["nonlikelyScript"].replace(
+            "root", "und"
+        ),
         "scripts": _likely_scripts(locales, likely),
-        "aliases": _language_aliases(locales, aliases["languageAlias"]),
+        "aliases": _language_aliases(aliases["languageAlias"]),
         "regions": _region_aliases(aliases["territoryAlias"]),
+        "likelyRegions": {
+            key: value.split("-")[2]
+            for key, value in sorted(likely.items())
+            if "-" not in key or (len(key.split("-")) == 2 and len(key.split("-")[1]) == 4)
+        },
     }
 
 
 def _likely_scripts(locales: dict[str, list[int]], likely: dict[str, str]) -> dict[str, str]:
-    """The likely script of each language written in several, and of its regions that differ.
-
-    Only languages with locales in more than one script need it: that is what makes
-    ``zh-TW`` read the Traditional Chinese patterns and ``zh-SG`` reach ``zh-Hans-SG``.
-    """
-    multi = {name.split("-")[0] for name in locales if _script(name)}
+    """Default scripts for known languages and region overrides, for CLDR inheritance."""
+    languages = {name.split("-")[0] for name in locales}
     found: dict[str, str] = {}
     for key, value in sorted(likely.items()):
         parts = key.split("-")
-        if parts[0] not in multi or not 1 <= len(parts) <= 2:
+        if parts[0] not in languages or not 1 <= len(parts) <= 2:
             continue
         if len(parts) == 2 and not REGION.fullmatch(parts[1]):
             continue
@@ -96,31 +103,26 @@ def _likely_scripts(locales: dict[str, list[int]], likely: dict[str, str]) -> di
     return found
 
 
-def _script(name: str) -> bool:
-    parts = name.split("-")
-    return len(parts) > 1 and len(parts[1]) == 4
-
-
-def _language_aliases(locales: dict[str, list[int]], table: dict[str, Any]) -> dict[str, str]:
-    """Language codes CLDR replaces, mapped to a replacement whose language has data.
+def _language_aliases(table: dict[str, Any]) -> dict[str, str]:
+    """Language codes CLDR replaces, regardless of available pattern data.
 
     A replacement may carry a script or region (``sh`` is ``sr-Latn``, ``cnr`` is ``sr-ME``).
     """
-    languages = {name.split("-")[0] for name in locales}
     found: dict[str, str] = {}
     for key, entry in sorted(table.items()):
         target = entry["_replacement"]
-        if LANGUAGE.fullmatch(key) and TAG.fullmatch(target) and target.split("-")[0] in languages:
+        if TAG.fullmatch(key) and TAG.fullmatch(target):
             found[key] = target
     return found
 
 
 def _region_aliases(table: dict[str, Any]) -> dict[str, str]:
-    """Region codes CLDR replaces by exactly one other region (``UK`` is ``GB``)."""
+    """Region replacements in CLDR preference order (``200`` is ``CZ SK``)."""
     return {
         key: entry["_replacement"]
         for key, entry in sorted(table.items())
-        if REGION.fullmatch(key) and REGION.fullmatch(entry["_replacement"])
+        if REGION.fullmatch(key)
+        and all(REGION.fullmatch(region) for region in entry["_replacement"].split())
     }
 
 

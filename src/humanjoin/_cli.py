@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import argparse
 import sys
-from collections.abc import Sequence
-from typing import TextIO, cast
+from collections.abc import Iterator, Sequence
+from typing import NoReturn, TextIO, cast
 
 from ._format import ListStyle, ListType, format_list
 from ._locale import cldr_version, supported_locales
@@ -15,10 +15,16 @@ __all__ = ["main"]
 _BOM = chr(0xFEFF)
 
 
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        self.print_usage(sys.stderr)
+        self.exit(2, "humanjoin: error: invalid choice or value; use --help\n")
+
+
 def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="humanjoin",
         description="Join items into one phrase the way a language writes a list (Unicode CLDR).",
         epilog="Without ITEM arguments the items are read from stdin, one per non-blank line.",
@@ -61,11 +67,14 @@ def _utf8(stream: TextIO, encoding: str = "utf-8") -> None:
         reconfigure(encoding=encoding)
 
 
-def _read_items(stdin: TextIO) -> list[str]:
-    items = [line.strip() for line in stdin]
-    if items:
-        items[0] = items[0].removeprefix(_BOM).strip()
-    return [item for item in items if item]
+def _read_items(stdin: TextIO) -> Iterator[str]:
+    # Defer reads until format_list has validated all semantic options.
+    for index, line in enumerate(stdin):
+        item = line.strip()
+        if index == 0:
+            item = item.removeprefix(_BOM).strip()
+        if item:
+            yield item
 
 
 def main(
@@ -89,12 +98,9 @@ def main(
         stdout.write("\n".join(supported_locales()) + "\n")
         return 0
     if not args.items and stdin.isatty():
-        parser.error("no items: pass ITEM arguments or pipe them on stdin")
+        parser.exit(2, "humanjoin: error: no items: pass ITEM arguments or pipe them on stdin\n")
     try:
         items = args.items or _read_items(stdin)
-    except UnicodeDecodeError:
-        parser.exit(2, "humanjoin: error: stdin is not valid UTF-8\n")
-    try:
         text = format_list(
             items,
             args.locale,
@@ -103,6 +109,8 @@ def main(
             limit=args.limit,
             more=args.more,
         )
+    except UnicodeDecodeError:
+        parser.exit(2, "humanjoin: error: stdin is not valid UTF-8\n")
     except (LookupError, ValueError) as error:
         parser.exit(2, f"humanjoin: error: {error}\n")
     stdout.write(text + "\n")

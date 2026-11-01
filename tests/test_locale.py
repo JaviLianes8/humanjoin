@@ -25,7 +25,7 @@ from humanjoin import (
         ("EN-us", "en"),
         ("en_IN.UTF-8", "en-IN"),
         ("en-ZZ", "en"),
-        ("en-Cyrl", "en"),
+        ("en-Cyrl", "und"),
         ("de-AT-1996", "de-AT"),
         ("de-CH-u-co-phonebk", "de-CH"),
         ("de-x-private", "de"),
@@ -66,7 +66,7 @@ def test_parent_root_reads_the_root_patterns() -> None:
 
 @pytest.mark.parametrize("tag", ["xx", "qaa-FR", "abcde"])
 def test_an_unknown_language_raises_lookup_error(tag: str) -> None:
-    with pytest.raises(LookupError, match=tag):
+    with pytest.raises(LookupError, match="no list patterns"):
         resolve_locale(tag)
 
 

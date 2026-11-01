@@ -51,7 +51,9 @@ def test_the_shipped_table_is_a_fresh_derivation_from_cldr() -> None:
     read_upstream("cldr-core-48.0.0.tgz")
     read_upstream("cldr-misc-full-48.0.0.tgz")
     build = _build_script()
-    shipped = (ROOT / "src" / "humanjoin" / "_cldr.json").read_text(encoding="ascii")
+    from importlib.resources import files
+
+    shipped = files("humanjoin").joinpath("_cldr.json").read_text(encoding="ascii")
     assert build.render(build.derive()) == shipped
 
 
@@ -64,9 +66,15 @@ def test_likely_scripts_keep_only_regions_that_change_the_script() -> None:
         "zh-TW": "zh-Hant-TW",
         "zh-Hant": "zh-Hant-TW",
         "en-GB": "en-Latn-GB",
+        "en": "en-Latn-US",
         "en-RU": "en-Cyrl-RU",
     }
-    assert build._likely_scripts(locales, likely) == {"zh": "Hans", "zh-TW": "Hant"}
+    assert build._likely_scripts(locales, likely) == {
+        "en": "Latn",
+        "en-RU": "Cyrl",
+        "zh": "Hans",
+        "zh-TW": "Hant",
+    }
 
 
 def test_every_locale_type_and_style_reads_its_cldr_patterns() -> None:

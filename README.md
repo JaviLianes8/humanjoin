@@ -1,5 +1,7 @@
 # humanjoin
 
+[![Lianes8 Certified](https://lianes8studio.com/certified/lianes8-certified-badge.svg)](https://lianes8studio.com/certified)
+
 Join a list into a natural-language phrase: "a, b, and c" with or without the Oxford comma,
 "a, b, and 3 more" when the list is long, and the list patterns of every Unicode CLDR locale
 for "a, b und c", "a、b和c" or "a, b o c". Typed, zero dependencies.
@@ -12,7 +14,7 @@ pip install humanjoin
 
 ## Usage
 
-English with a chosen conjunction, as in `0.1`:
+English with a chosen conjunction:
 
 ```python
 from humanjoin import join, join_max
@@ -134,17 +136,21 @@ Locale resolution replaces deprecated codes (`iw` is `he`, `sh` is `sr-Latn`, `e
 `en-GB`), reads POSIX script modifiers (`sr_RS@latin`), adds the likely script where a
 language is written in several (`zh-TW` reads `zh-Hant`, `zh-SG` reads `zh-Hans-SG`,
 `sr-ME` reads `sr-Latn-ME`), keeps variant locales (`ca-ES-valencia`), then follows the CLDR
-parent locales (`en-IN` reads `en-001`, `pt-FR` reads `pt-PT`) and drops subtags until it
+parent locales (`pt-FR` reads `pt-PT`) and drops subtags until it
 finds data. Every name `supported_locales()` returns resolves to itself.
 
 ## Why
 
-Joining a list into readable prose is written again in every project, and the details are
-easy to get wrong: no comma for two items, the Oxford comma toggle, an "and N more" tail,
-and every other language. `humanize.natural_list` has no Oxford comma and no overflow limit.
-`inflect.join` has the Oxford comma but pulls in dependencies and is English only. Babel has
-`format_list` with CLDR data, but it is a large dependency and has no truncation. This is a
-small typed primitive for exactly those cases.
+Use `str.join` when a fixed separator is enough. `humanjoin` adds the two-item rule,
+the Oxford comma toggle, localized list patterns and an "and N more" tail. If you already
+use [Babel](https://babel.pocoo.org/en/latest/api/lists.html), its `format_list` provides
+localized lists too; there is no need to add another library for that alone. Choose
+`humanjoin` when you want these list operations with type hints and no runtime dependencies.
+
+The [GUIDE](https://github.com/JaviLianes8/humanjoin/blob/main/GUIDE.md) defines validation,
+templates, locale fallback and CLI behavior. The
+[CHANGELOG](https://github.com/JaviLianes8/humanjoin/blob/main/CHANGELOG.md) lists the
+stricter validation in 1.0.0 and the upgrade from 0.2.0.
 
 ## Development
 
@@ -156,8 +162,9 @@ pwsh scripts/check.ps1             # format, lint, types, tests
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The pattern table is derived from Unicode CLDR data, used under
-the Unicode License v3, see [LICENSE-UNICODE](LICENSE-UNICODE).
+MIT, see [LICENSE](https://github.com/JaviLianes8/humanjoin/blob/main/LICENSE).
+The pattern table is derived from Unicode CLDR data, used under the Unicode License v3,
+see [LICENSE-UNICODE](https://github.com/JaviLianes8/humanjoin/blob/main/LICENSE-UNICODE).
 
 ## Links
 
