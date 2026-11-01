@@ -1,9 +1,10 @@
 # humanjoin 1.0.0 certification report
 
-Preparation for 1.0.0, dated 2026-11-01. The release branch resumes uncommitted
+Initial preparation for 1.0.0, dated 2026-11-01. The release branch resumes uncommitted
 changes based on main `4080236dbfc64d4afb18f7fddc6e380c1c0461cf` (0.2.0).
 All nine package files in the downloaded PyPI 0.2.0 wheel equal main byte for byte.
 No earlier release commits or certification lens reports were present.
+The QA round 1 section below records subsequent findings, fixes and validation.
 
 Progress:
 - [x] Published baseline checked: PyPI 0.2.0 is live
@@ -25,7 +26,8 @@ Progress:
 The ten public exports of 0.2.0 retain their names, parameter names and defaults.
 `__version__` is 1.0.0; the unintended `annotations` attribute is removed.
 `ListPattern` remains a frozen hashable dataclass and is now identified publicly
-for pickling. CLDR data and valid list outputs are unchanged. Stricter boolean,
+for pickling. The 766 locales' list pattern data is unchanged; QA round 1 corrects
+alias resolution, variant retention and nonlikely-script inheritance. Stricter boolean,
 tail, locale-length and template validation, bounded error messages, validation
 before input consumption and linear list assembly are described in CHANGELOG.
 GUIDE defines errors, finite iterable semantics, lookup limits and CLI behavior.
@@ -133,7 +135,7 @@ for each mutant. The table names the first test that caught each change.
 | C01 | CLI success returns one | `test_cli::test_items_from_arguments_default_to_english` |
 | C02 | Keep blank stdin lines | `test_cli::test_items_from_stdin_skip_blank_lines` |
 
-## Final gates and scorecard
+## Preparation gates and scorecard
 
 Each command exits 0 independently: `ruff format --check .` (31 files),
 `ruff check .`, `mypy --strict src` (8 files), `mypy --strict src tests` (23 files),
@@ -161,10 +163,60 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Pending separate QA lenses a, b, c, d and e |
+| 19 | Round 1 fixes below; independent verification remains pending |
+
+## QA lenses, round 1
+
+Reviewed base: `fe89fa7462623d96201b11d2b97d91560c892302`.
+Fix commit: `86df0018210d00b1db6998be07a9702e2df59cb0`
+(`fix validation and locale fallback contracts`), pushed on 2026-11-01.
+
+All ten supplied findings are addressed. Each behavior defect had a new failing
+contract before its fix: the initial regression run produced 53 failures and 41
+passes on the reviewed base. E-01 and E-02 concern missing contracts for existing
+behavior; their new tests pass on pristine code and fail with the reported mutations.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| A-001, B-04, C-01 | Bound every Unicode decimal width/precision before formatting, including mixed alphabets and long zero prefixes | `test_tail_unicode.py`, `test_cli_contracts.py`: 10000 accepted, 10001 rejected through both functions and the CLI; numeric fill characters preserved |
+| B-01 | Retain compound CLDR aliases in the derived table and apply them before fallback, preserving explicit fields | `test_locale_aliases.py`: all four reported aliases, POSIX/case/extension forms, explicit scripts/regions and Nynorsk unit output |
+| B-02 | Retry the complete variant locale after default-script normalization | `test_locale_aliases.py`: Catalan Valencia with BCP 47 and POSIX scripts; numeric variant fallback |
+| B-03 | Derive likely scripts for every supported language and apply CLDR's programmatic root parent rule | `test_locale_aliases.py`: Russian, German, English and French nonlikely scripts; unknown languages still raise; direct locale data remains authoritative |
+| C-02 | Normalize option subclasses using base-class operations before validation, caching or formatting, including custom pattern fields | `test_option_subclasses.py`: overridden comparison, conversion, length, hash, formatting and pattern operations cannot bypass validation or run hooks |
+| C-03 | Read stdin lazily, after semantic options are validated | `test_cli_contracts.py`: invalid limit/locale exits 2 with an open pipe and never reads an instrumented finite stream; template syntax stays deferred |
+| E-01 | Assert exact whitespace-bearing argument output bytes through both entry points | `test_cli_contracts.py`, `test_e2e_wheel.py`: M54 fails the module contract and installed-wheel checks for both commands |
+| E-02 | Document and pin eager callback-result conversion followed by item coercion | `test_tail_unicode.py`: M14 fails both `join_max` and `format_list` at limit zero; production behavior retained |
+
+The CHANGELOG records every behavior change; GUIDE explains option normalization,
+Unicode bounds, corrected locale lookup, CLI validation timing and callable tails.
+Public names, signatures and defaults are unchanged. No findings are disputed.
+
+Validation on CPython 3.14.6, with a 300-second per-test timeout:
+
+- `ruff format --check .`: exit 0, 37 files.
+- `ruff check .`: exit 0.
+- `mypy --strict src`: exit 0, 10 files. Strict source-and-test checks also pass (29 files).
+- `pytest`: exit 0, 411 passed with no skips, including installed-wheel and live
+  PyPI 0.2.0 upgrade checks. All six freshly fetched/generated reference files match
+  their manifest hashes. Both distribution files pass `twine check --strict`.
+- All 98 new regression cases pass against a separate clean wheel installation,
+  with source-path injection disabled and the import location checked.
+- M14 and M54 were replayed separately in disposable copies. M14 causes two
+  callable-tail failures; M54 fails the module test and the installed-wheel test
+  after exercising both CLI commands. No source changes remain from mutation runs.
+
+CLDR list pattern records and all 766 direct locale entries remain identical.
+The corrected `en-Cyrl` inheritance selects root while Node negotiates English;
+that probe is no longer a comparable Node case. The other 24,885 comparable
+cases across 544 tags pass, and CLDR-derived contracts cover the root behavior.
+Evidence logs and disposable environments are under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r1/`.
+Independent same-lens verification is still pending; these fix checks do not
+claim a new independent PASS verdict.
 
 ## Remaining stages
 
-Items 16 and 19 have not been run for this release. No independent PASS is claimed.
+Item 16 remains a separate review stage. Round 1 findings for item 19 are fixed
+above and await independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
