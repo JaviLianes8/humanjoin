@@ -24,6 +24,8 @@ class _Text(str):
         ("e\u0301", "a e\u0301 b", "a, b, e\u0301 c", "a, b e\u0301 c"),
         ("x\x00y", "a x\x00y b", "a, b, x\x00y c", "a, b x\x00y c"),
         ("\ufeffand", "a \ufeffand b", "a, b, \ufeffand c", "a, b \ufeffand c"),
+        ("x\ud800y", "a x\ud800y b", "a, b, x\ud800y c", "a, b x\ud800y c"),
+        ("x\udfffy", "a x\udfffy b", "a, b, x\udfffy c", "a, b x\udfffy c"),
     ],
 )
 def test_joiners_preserve_conjunction_code_points(
@@ -48,6 +50,8 @@ def test_joiners_preserve_conjunction_code_points(
         ("e\u0301", "a e\u0301 2 more", "a, b, e\u0301 2 more", "a, b e\u0301 2 more"),
         ("x\x00y", "a x\x00y 2 more", "a, b, x\x00y 2 more", "a, b x\x00y 2 more"),
         ("\ufeffand", "a \ufeffand 2 more", "a, b, \ufeffand 2 more", "a, b \ufeffand 2 more"),
+        ("x\ud800y", "a x\ud800y 2 more", "a, b, x\ud800y 2 more", "a, b x\ud800y 2 more"),
+        ("x\udfffy", "a x\udfffy 2 more", "a, b, x\udfffy 2 more", "a, b x\udfffy 2 more"),
     ],
 )
 def test_overflow_preserves_conjunction_code_points(
@@ -67,6 +71,8 @@ def test_overflow_preserves_conjunction_code_points(
         ("e\u0301{n}", "e\u03012"),
         ("x\x00{n}y", "x\x002y"),
         ("\ufeff{n} more", "\ufeff2 more"),
+        ("x\ud800{n}y", "x\ud8002y"),
+        ("x\udfff{n}y", "x\udfff2y"),
     ],
 )
 def test_overflow_templates_preserve_code_points(
@@ -77,7 +83,7 @@ def test_overflow_templates_preserve_code_points(
 
 
 @pytest.mark.parametrize("text_type", [str, _Text])
-@pytest.mark.parametrize("literal", ["\r\n", "e\u0301", "x\x00y", "\ufeff"])
+@pytest.mark.parametrize("literal", ["\r\n", "e\u0301", "x\x00y", "\ufeff", "x\ud800y", "x\udfffy"])
 @pytest.mark.parametrize(
     ("field", "items", "expected"),
     [
@@ -100,7 +106,9 @@ def test_custom_pattern_fields_preserve_code_points(
 
 
 @pytest.mark.parametrize("text_type", [str, _Text])
-@pytest.mark.parametrize("language", ["\r\n", "e\u0301", "e\x00s", "\ufeffes"])
+@pytest.mark.parametrize(
+    "language", ["\r\n", "e\u0301", "e\x00s", "\ufeffes", "es\ud800", "es\udfff"]
+)
 def test_custom_language_preserves_code_points(text_type: type[str], language: str) -> None:
     field = "{0} y {1}"
     pattern = ListPattern(field, field, field, field, language=text_type(language))

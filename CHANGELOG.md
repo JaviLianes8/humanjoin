@@ -65,6 +65,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts preserve lone high and low surrogates in conjunctions, overflow
+  templates, all custom pattern fields and stored custom language values,
+  including string subclasses. These contracts preserve existing behavior.
 - Contracts preserve embedded NULs and leading BOMs in text options, retain
   region/script-suffixed custom language strings without contextual rewriting,
   and distinguish empty custom language strings from `None`. Uppercase and
