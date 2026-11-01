@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 4 fix below; independent verification remains pending |
+| 19 | Round 5 fixes below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -342,9 +342,56 @@ under `C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r4/`.
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
+## QA lenses, round 5
+
+Reviewed base: `6fa16146bf8e6aa81b3df27defc0fb4a05962479`.
+Fix commit: `add literal text and selector contracts` (this commit),
+dated 2026-11-01.
+
+E-09 through E-13 are addressed. All five findings concern missing contracts
+for already-correct behavior. The 256 new cases pass on the reviewed code and
+catch every reported mutation. Production code, public names, signatures,
+defaults and behavior are unchanged. No findings are disputed. CHANGELOG
+records the added contracts, whose expected values are hand-written.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| E-09 | Preserve CRLF in conjunctions and custom pattern fields | `test_option_text.py` covers both joiners, both Oxford settings, overflow, all four fields and repeated middle patterns; stored fields and output retain exact code points |
+| E-10 | Preserve decomposed Unicode in text options | The same contracts use `e\u0301`; additional cases preserve overflow-template output and stored custom language text |
+| E-11 | Preserve custom language case and select contextual rules by exact code | `test_pattern_language.py` covers lowercase, uppercase and both mixed-case forms of `es`, `he` and `iw`, including Spanish conjunction/disjunction and Hebrew hyphen rules in two-item and longer lists |
+| E-12 | Reject padded locale tags across public locale functions | `test_option_selectors.py` covers `resolve_locale`, `list_pattern` and `format_list`, including warmed valid lookups and rejection before item iteration |
+| E-13 | Reject padded type and style selectors | Both `list_pattern` and `format_list` reject all three types and styles with leading, trailing or surrounding spaces, tabs, CRLF and nonbreaking spaces; invalid formatting options never start iteration |
+
+Every new contract covers plain strings and string subclasses whose `__str__`
+raises. The five exact reviewer patches were replayed serially in a disposable
+source copy with fresh processes and bytecode writes disabled:
+
+| Mutation | Detecting contracts | Result |
+| --- | --- | --- |
+| N06: normalize CRLF to LF | `test_joiners_preserve_conjunction_code_points`, `test_overflow_preserves_conjunction_code_points`, `test_custom_pattern_fields_preserve_code_points`, `test_custom_language_preserves_code_points` | 18 failures |
+| N07: normalize text options to NFC | The same exact-code-point contracts with decomposed Unicode | 18 failures |
+| N08: lowercase custom language | `test_custom_language_preserves_case_and_selects_exact_contextual_rules` | 24 failures |
+| N09: strip locale padding | `test_locale_lookups_reject_padded_tags`, `test_format_list_rejects_padded_locale_before_iteration` | 60 failures |
+| N10: strip type/style padding | `test_list_functions_reject_padded_types`, `test_list_functions_reject_padded_styles` | 120 failures |
+
+All 256 cases pass before mutation and after byte-for-byte restoration. There
+are no collection errors or skips in any replay. Original reviewer artifacts
+remain unchanged.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (43 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (769 passed, zero
+skips). Strict typing of source and tests also passes (35 files). The full suite
+includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
+upgrade. All six freshly fetched/generated reference files match their manifest
+hashes. Gate logs, mutation patches and results are retained under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r5/`.
+Independent same-lens verification remains a separate stage; these checks do
+not claim a new independent PASS verdict.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. The round 4 finding for item 19 is fixed
-above and awaits independent verification. No new independent PASS is claimed.
+Item 16 remains a separate review stage. The round 5 findings for item 19 are fixed
+above and await independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.

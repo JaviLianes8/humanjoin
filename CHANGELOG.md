@@ -65,6 +65,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Contracts preserve exact CRLF and decomposed Unicode text in conjunctions,
+  overflow templates and custom pattern fields, including string subclasses.
+  Custom language codes retain their case and select contextual rules only by
+  exact match. Padded locale, type and style selectors raise `ValueError` before
+  item iteration. These contracts preserve existing behavior.
 - Exact-output contracts preserve conjunction and custom-pattern whitespace and
   literal language values, including normalized string subclasses.
 - Contracts reject noninteger limits with raising `__class__` properties through
