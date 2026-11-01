@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 5 fixes below; independent verification remains pending |
+| 19 | Round 6 fixes below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -389,9 +389,57 @@ hashes. Gate logs, mutation patches and results are retained under
 Independent same-lens verification remains a separate stage; these checks do
 not claim a new independent PASS verdict.
 
+## QA lenses, round 6
+
+Reviewed base: `d9b0fe829b3d6c6b9127ee27a07884d9513fdc63`.
+Fix commit: `f4c96d1e2f71b3d8bd8d4671469c3292b0a80536`
+(`add nul bom language and selector contracts`), dated 2026-11-01.
+
+E-14 through E-18 are addressed. All five findings concern missing contracts
+for already-correct behavior. The 146 added cases pass on the reviewed
+implementation and catch every reported mutation. Production code, public
+names, signatures, defaults and behavior remain unchanged. No findings are
+disputed. CHANGELOG records the added contracts; expected values are hand-written.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| E-14 | Preserve embedded NULs in text options | `test_option_text.py` checks exact conjunction output through both joiners, both Oxford settings and overflow; all four custom pattern fields, repeated middle patterns, overflow templates and stored custom language values retain NULs |
+| E-15 | Preserve leading BOMs in text options | The same contracts retain U+FEFF in conjunctions, stored pattern fields, pattern output, overflow templates and custom language text |
+| E-16 | Keep custom language subtags literal without contextual rules | `test_custom_language_subtags_stay_literal_without_contextual_rules` covers region, script and combined suffixes with hyphens and underscores for `es`, `he` and `iw`; stored values and two-item/longer outputs remain literal for Spanish conjunction/disjunction and Hebrew hyphen rules |
+| E-17 | Keep empty custom language strings distinct from `None` | `test_empty_custom_language_remains_a_string_distinct_from_none` checks the exact built-in string type, value inequality and inactive contextual rules |
+| E-18 | Reject uppercase and mixed-case type/style selectors | `test_list_functions_reject_nonlowercase_types` and `test_list_functions_reject_nonlowercase_styles` cover all three types and styles through both public list functions, after valid lookups; `format_list` rejects them before item iteration |
+
+Every added contract covers plain strings and subclasses whose `__str__` raises.
+The five exact reviewer mutations were replayed serially in a disposable source
+copy, with fresh processes and bytecode writes disabled. Each supplied public
+witness changed under its mutation, confirming non-equivalence.
+
+| Mutation | Detecting contracts | Result |
+| --- | --- | --- |
+| S02: remove NULs from text options | `test_joiners_preserve_conjunction_code_points`, `test_overflow_preserves_conjunction_code_points`, `test_custom_pattern_fields_preserve_code_points`, `test_custom_language_preserves_code_points` | 18 failures |
+| S03: remove leading BOMs from text options | The same exact-code-point contracts with leading U+FEFF | 18 failures |
+| S04: take the primary subtag of custom language values | `test_custom_language_subtags_stay_literal_without_contextual_rules` | 24 failures |
+| S05: coerce empty custom language strings to `None` | `test_empty_custom_language_remains_a_string_distinct_from_none` | 6 failures |
+| S07: lowercase type/style selectors | `test_list_functions_reject_nonlowercase_types`, `test_list_functions_reject_nonlowercase_styles` | 48 failures |
+
+All 402 targeted cases pass before mutation and after byte-for-byte source
+restoration. Completed replays have no collection errors, timeouts or skips.
+Original reviewer artifacts remain unchanged.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (43 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (915 passed, zero
+skips). Strict typing of source and tests also passes (35 files). The full suite
+includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
+upgrade. All six freshly fetched/generated reference files match their manifest
+hashes. Gate logs, mutation patches, witnesses and results are retained under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r6/`.
+Independent same-lens verification remains a separate stage; these checks do
+not claim a new independent PASS verdict.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. The round 5 findings for item 19 are fixed
+Item 16 remains a separate review stage. The round 6 findings for item 19 are fixed
 above and await independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
