@@ -345,8 +345,8 @@ not claim a new independent PASS verdict.
 ## QA lenses, round 5
 
 Reviewed base: `6fa16146bf8e6aa81b3df27defc0fb4a05962479`.
-Fix commit: `add literal text and selector contracts` (this commit),
-dated 2026-11-01.
+Fix commit: `172cde49c83148467d051c5f79f63840c7f26a38`
+(`add literal text and selector contracts`), dated 2026-11-01.
 
 E-09 through E-13 are addressed. All five findings concern missing contracts
 for already-correct behavior. The 256 new cases pass on the reviewed code and
