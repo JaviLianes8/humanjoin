@@ -163,7 +163,7 @@ Every test has a 300-second timeout and all temporary directories are explicit.
 | 16 | Pending separate independent review |
 | 17 | PR #3 open from `release/1.0.0`, guard CLEAN; merge and publication pending |
 | 18 | PASS: all 22 author mutations killed |
-| 19 | Round 2 fixes below; independent verification remains pending |
+| 19 | Round 3 fixes below; independent verification remains pending |
 
 ## QA lenses, round 1
 
@@ -265,9 +265,48 @@ PyPI 0.2.0 upgrade checks enabled. Evidence is retained under
 Independent same-lens verification remains a separate stage; these fix checks
 do not claim new independent PASS verdicts.
 
+## QA lenses, round 3
+
+Reviewed base: `57efb3c85cb1cf18941e8d768ef7141a67ed8d7c`.
+Fix commit: `1ee009242e84b59527ba216eb9d4a942fcd26744`
+(`fix text validation and invalid-limit contracts`), dated 2026-11-01.
+
+Both supplied findings are addressed. Before production edits, the new contracts
+produced 14 failures and two passes on the reviewed base. All failures exercise
+C-03 through the shared text-option helper. E-07 concerns missing contracts for
+already-correct limit validation; its two new tests pass on pristine code and
+fail under the reported P20 mutation. No findings are disputed.
+
+| Finding | Change | Regression evidence |
+| --- | --- | --- |
+| C-03 | Check actual string ancestry before base-class normalization, without reading a supplied `__class__` property | `test_text_options_reject_bytes_without_reading_class_property`: 14 cases cover locales, list types/styles, conjunctions and custom pattern fields; exact `TypeError` messages, no exception context, zero property reads and untouched item iterators |
+| E-07 | Retain actual-type limit validation and add contracts for noninteger inputs with raising `__class__` properties | `test_noninteger_limit_is_rejected_without_reading_class_property`: both `join_max` and `format_list` reject the input before property access or iteration |
+
+The positive string-subclass contracts now also include a raising `__class__`
+property. All 30 targeted option contracts pass. In a disposable source copy,
+P20 changes the limit ancestry check back to `isinstance`: both new limit
+contracts fail, while the 14 text-option cases pass. All 16 new contracts pass
+before the mutation and after byte-for-byte restoration.
+
+Copies of the supplied reviewer probes pass against the fix: all 40 lens C
+sweep cases and both lens E limit witnesses. Original reviewer artifacts remain
+unchanged. CHANGELOG records the text-validation behavior change and added limit
+contracts. Public names, signatures and defaults remain unchanged.
+
+Validation on CPython 3.14.6 uses a 300-second per-test timeout and scratch-only
+temporary paths. Each required gate exits 0: `ruff format --check .` (39 files),
+`ruff check .`, `mypy --strict src` (10 files), and `pytest` (465 passed, zero
+skips). Strict typing of source and tests also passes (31 files). The full suite
+includes installed-wheel checks, both CLI entry points and the live PyPI 0.2.0
+upgrade. All six freshly fetched/generated reference files match their manifest
+hashes. Logs, mutation results and copied probes are retained under
+`C:/lianes8-build/codex-pylib/scratch/humanjoin-cert/fix-r3/`.
+Independent same-lens verification remains a separate stage; these checks do
+not claim new independent PASS verdicts.
+
 ## Remaining stages
 
-Item 16 remains a separate review stage. Round 2 findings for item 19 are fixed
+Item 16 remains a separate review stage. Round 3 findings for item 19 are fixed
 above and await independent verification. No new independent PASS is claimed.
 Merge and PyPI publication are not part of preparation.
 The release PR is https://github.com/JaviLianes8/humanjoin/pull/3.
