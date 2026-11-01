@@ -65,6 +65,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Exact-output contracts preserve conjunction and custom-pattern whitespace and
+  literal language values, including normalized string subclasses.
 - Contracts reject noninteger limits with raising `__class__` properties through
   both truncating functions without invoking the property or consuming items.
 - Exact-byte contracts preserve noninitial stdin BOM characters through both CLI
